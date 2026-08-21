@@ -137,8 +137,8 @@ const tasks = {
         },
         {
             id: 'A2',
-            name: '揉丁',
-            description: '跪姿，掏出丁丁揉动',
+            name: '揉鸡巴',
+            description: '跪姿，掏出鸡巴揉动',
             baseScore: 2
         },
         {
@@ -182,7 +182,7 @@ const tasks = {
         {
             id: 'B3',
             name: '勃起露出',
-            description: '露出勃起带血管丁丁头，拍3张不同角度的照片',
+            description: '露出勃起带血管鸡巴头，拍3张不同角度的照片',
             baseScore: 2
         },
         {
@@ -918,10 +918,10 @@ function getClimbingMethod() {
     switch (result) {
         case 1: taskDesc = "狗姿白袜登阶: 全程狗姿，限定仅穿袜（或全裸），爬双层，脚不可着地"; break;
         case 2: taskDesc = "跪姿上楼法: 每上一级台阶膝盖至少落地1次（护膝强烈推荐）完成2层"; break;
-        case 3: taskDesc = "叼着内裤勃起上楼: 将内裤脱下咬嘴中，同时丁丁全裸露头完整走2层"; break;
+        case 3: taskDesc = "叼着内裤勃起上楼: 将内裤脱下咬嘴中，同时鸡巴全裸露头完整走2层"; break;
         case 4: taskDesc = "裤跨肩上（裤当披风）: 脱裤挂脖全裸上下体，每阶可选择爬or站，但视角均暴露"; break;
         case 5: taskDesc = "一次边撸边爬挑战: 边边缘、边爬2层，必须记录视频或射前自拍"; break;
-        case 6: taskDesc = "赤足龟步控制式: 赤脚慢走，每一步需停0.5秒，装丁叽震动站立模拟热鸡走状态"; break;
+        case 6: taskDesc = "赤足龟步控制式: 赤脚慢走，每一步需停0.5秒，装鸡巴震动站立模拟热鸡走状态"; break;
     }
 
     return { result, taskDesc };

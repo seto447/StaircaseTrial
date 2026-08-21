@@ -352,8 +352,11 @@
   border-color: oklch(0.62 0.16 32 / 0.5);
 }
 
-.stair-step-hell-gate {
+.stair-hell-col {
   margin-left: 7px;
+}
+.stair-step-hell-gate {
+  position: relative;
 }
 .stair-step-hell-gate::before {
   content: "";
@@ -395,38 +398,6 @@
 }
 .stair-step-hell.is-lit::after {
   opacity: 0.55;
-}
-
-/* 末格：结算封口，不是再爬的一层 */
-.stair-step-end {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  margin-left: 3px;
-  background: oklch(0.96 0.01 70);
-  border-color: oklch(0.55 0.13 28 / 0.55);
-  box-shadow: inset 0 0 0 1px oklch(0.55 0.13 28 / 0.22);
-}
-.stair-step-end::after {
-  content: "";
-  position: absolute;
-  left: 18%;
-  right: 18%;
-  top: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    oklch(0.62 0.16 32 / 0.8),
-    transparent
-  );
-  box-shadow: 0 0 6px oklch(0.58 0.16 32 / 0.4);
-  pointer-events: none;
-}
-.dark .stair-step-end {
-  background: oklch(0.20 0.03 28);
-  border-color: oklch(0.58 0.14 32 / 0.5);
-  box-shadow: inset 0 0 0 1px oklch(0.58 0.14 32 / 0.18);
 }
 
 .stair-floor-label-hell {

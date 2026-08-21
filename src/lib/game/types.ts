@@ -7,9 +7,7 @@ export type ClothingItem =
   | "长裤"
   | "内裤"
   | "短袜"
-  | "护膝"
-  | "口球"
-  | "贞操锁";
+  | "护膝";
 
 export type AppView =
   | "start"
@@ -20,13 +18,7 @@ export type AppView =
   | "end"
   | "history";
 
-export type OwnedItemId =
-  | ClothingItem
-  | "备用内裤"
-  | "备用短袜"
-  | "水"
-  | "纸巾"
-  | "袋子";
+export type OwnedItemId = ClothingItem;
 
 export type OwnedInventory = Record<OwnedItemId, boolean>;
 
@@ -95,6 +87,8 @@ export interface GameState {
   missionPlan: MissionPlan | null;
   /** 结算时抽出的结局正文；0 分会含加罚任务，旧存档可能为 null */
   resolvedEnding: string | null;
+  /** 商店阶段已重随积分次数，最多 2 */
+  scoreRerollsUsed: number;
 }
 
 export interface GameHistoryRecord {

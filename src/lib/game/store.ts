@@ -10,7 +10,6 @@ import {
   resolveTaskDescription,
 } from "./advisor";
 import {
-  CLOTHING_ITEMS,
   STRIPPABLE_CLOTHING_ITEMS,
   calculateTaskScore,
   createInitialGameState,
@@ -24,7 +23,10 @@ import {
   getTaskPoolForFloor,
   getTotalFloors,
   getTotalProgressSteps,
+  MAX_SCORE_REROLLS,
   pickRandomTask,
+  rollStartingScore,
+  sanitizeClothing,
   shopItems,
   SKIP_TASK_COST,
   tasks,
@@ -39,7 +41,6 @@ import {
 } from "./storage";
 import type {
   AppView,
-  ClothingItem,
   ConfirmOptions,
   GameHistoryRecord,
   GameMode,
@@ -65,6 +66,7 @@ interface GameStore {
   setView: (view: AppView) => void;
   hydrate: () => void;
   startGame: (startingFloor: number, mode?: GameMode, owned?: OwnedInventory) => void;
+  rerollShopScore: () => boolean;
   buyItem: (itemId: string, price: number) => boolean;
   returnItem: (itemId: string) => boolean;
   startAdventure: () => boolean;
@@ -155,19 +157,7 @@ function normalizeLoadedState(raw: unknown): GameState {
     currentFloor: normalizedCurrentFloor,
     maxFloor: normalizedMaxFloor,
     startingFloor: normalizedStartingFloor,
-    clothing: Object.fromEntries(
-      CLOTHING_ITEMS.map((key) => {
-        if (typeof data.clothing?.[key] === "boolean") return [key, data.clothing[key]];
-        // 兼容旧存档：贞操带 -> 贞操锁
-        if (
-          key === "贞操锁" &&
-          typeof (data.clothing as Record<string, unknown>)?.["贞操带"] === "boolean"
-        ) {
-          return [key, (data.clothing as Record<string, unknown>)["贞操带"] as boolean];
-        }
-        return [key, base.clothing[key]];
-      }),
-    ) as Record<ClothingItem, boolean>,
+    clothing: sanitizeClothing(data.clothing),
     inventory: inv,
     tasksCompleted: clampScore(data.tasksCompleted, 0),
     tasksCompletedInPhase: {
@@ -204,11 +194,15 @@ function normalizeLoadedState(raw: unknown): GameState {
     owned: normalizeOwnedInventory(data.owned),
     missionPlan: normalizeMissionPlan(data.missionPlan),
     resolvedEnding: typeof data.resolvedEnding === "string" ? data.resolvedEnding : null,
+    scoreRerollsUsed: Math.min(
+      MAX_SCORE_REROLLS,
+      clampScore(data.scoreRerollsUsed, 0),
+    ),
   };
 }
 
 function lockInFlavorText(state: GameState): GameState {
-  let next = state;
+  let next = { ...state, clothing: sanitizeClothing(state.clothing) };
   if (next.currentTask) {
     const locked = concretizeTask(next.currentTask, next.clothing, next.owned);
     if (locked.description !== next.currentTask.description) {
@@ -229,7 +223,7 @@ function lockInFlavorText(state: GameState): GameState {
 
 function persist(state: GameState) {
   try {
-    saveGameStateToStorage(state);
+    saveGameStateToStorage({ ...state, clothing: sanitizeClothing(state.clothing) });
   } catch {
     // 忽略存储失败
   }
@@ -466,6 +460,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
     };
     persist(state);
     set({ state, view: "shop" });
+  },
+
+  rerollShopScore: () => {
+    const { state } = get();
+    if (state.gamePhase !== "shop") return false;
+    if (state.scoreRerollsUsed >= MAX_SCORE_REROLLS) return false;
+
+    const pantsPrice = shopItems.find((i) => i.id === "长裤")?.price ?? 5;
+    const next: GameState = {
+      ...state,
+      score: Math.max(0, rollStartingScore(state.mode) - pantsPrice),
+      clothing: {
+        上衣: false,
+        长裤: true,
+        内裤: false,
+        短袜: false,
+        护膝: false,
+      },
+      inventory: emptyInventory(),
+      hasBoughtRestore: false,
+      hasBoughtHellPass: false,
+      hasBoughtRiskDouble: false,
+      riskDoubleActive: false,
+      scoreRerollsUsed: state.scoreRerollsUsed + 1,
+    };
+    persist(next);
+    set({ state: next });
+    return true;
   },
 
   canBuyItem: (itemId, price) => {

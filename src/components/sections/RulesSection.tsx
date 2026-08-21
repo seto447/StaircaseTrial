@@ -29,20 +29,20 @@ const FLOW_HELL = [
 ];
 
 const ENDINGS_NORMAL = [
-  { range: "≥40", text: "完全自主：任意方式与地点，可干净回家" },
-  { range: "30–39", text: "短袜接精 + 含袜 10 秒后可回家" },
-  { range: "20–29", text: "全裸跪地射精，身体或舌头清理干净" },
-  { range: "10–19", text: "精液射在身上多处，拍摄后舔净" },
-  { range: "1–9", text: "禁止射精，罚跪 15 分钟，贞操锁 3 天" },
-  { range: "0", text: "加罚一项当场抽出的任务，再执行禁止射精、罚跪与贞操锁" },
+  { range: "≥40", text: "怎么射、在哪射都随你，也可以不射，完成后回家" },
+  { range: "30–39", text: "射到短袜上，含住至少10s，完成后回家" },
+  { range: "20–29", text: "全裸跪下射出来，用身体或舌头舔干净，完成后回家" },
+  { range: "10–19", text: "射到身上多处，拍下来，舔干净，完成后回家" },
+  { range: "1–9", text: "不准射，裸体罚跪至少15分钟，戴贞操锁3天，短袜塞嘴里回家" },
+  { range: "0", text: "当场再抽一项C级任务做完，再按1–9分结局执行" },
 ];
 
 const ENDINGS_HELL = [
-  { range: "≥50", text: "地狱豁免：立即回家，「地狱幸存者」" },
-  { range: "35–49", text: "电梯厅公开边缘后才可射精" },
-  { range: "20–34", text: "电梯厅排尿展示 + 射精" },
-  { range: "10–19", text: "电梯厅全裸罚跪 + 强制拍摄" },
-  { range: "0–9", text: "全裸 + 排尿 + 禁止射精 + 贞操锁 7 天" },
+  { range: "≥50", text: "可以马上回家，拿到「地狱幸存者」" },
+  { range: "35–49", text: "在电梯厅边缘至少一次，完成后才能射" },
+  { range: "20–34", text: "在电梯厅尿出来，再射出来，完成后回家" },
+  { range: "10–19", text: "电梯厅全裸罚跪，拍下来，完成后回家" },
+  { range: "0–9", text: "电梯厅全裸，尿出来，不准射，戴贞操锁7天，短袜塞嘴里回家" },
 ];
 
 export function RulesSection() {
@@ -95,6 +95,7 @@ export function RulesSection() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>· 初始 0–22 分（语义 5–27，5 分预留给长裤）</li>
                 <li>· 地狱模式开局额外 -3 分</li>
+                <li>· 商店可重新随机积分，最多 2 次；重随后已购商品退回</li>
                 <li>· 长裤必购 5 分</li>
                 <li>· 完成任务：基础分 + 暴露加成 + 尿液加成（如有）</li>
               </ul>
@@ -106,13 +107,13 @@ export function RulesSection() {
             <TabsContent value="shop" className="mt-5 space-y-3">
               <SectionTitle>商店</SectionTitle>
               <p className="text-sm text-muted-foreground">
-                开局先勾选你有的实物。商店买的是出门穿着；未买的若你有，请放包里。准备出门时会给出携带清单，具体任务到楼层再揭晓。退货仅限商店阶段。
+                上衣、长裤、内裤、短袜默认都有。护膝在首页勾选。商店买的是出门穿着；没买的请放包里。准备出门时会给出携带清单。退货仅限商店阶段。
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border p-3 text-sm">
                   <p className="font-medium">衣物</p>
                   <p className="mt-1 text-muted-foreground">
-                    长裤 5 · 上衣 4 · 内裤 4 · 短袜 2 · 护膝 2 · 口球 3 · 贞操锁 7
+                    长裤 5 · 上衣 4 · 内裤 4 · 短袜 2 · 护膝 2
                   </p>
                 </div>
                 <div className="rounded-lg border p-3 text-sm">

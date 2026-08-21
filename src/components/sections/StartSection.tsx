@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { OWNED_ITEM_DEFS } from "@/lib/game/advisor";
 import { loadOwnedInventoryFromStorage, saveOwnedInventoryToStorage } from "@/lib/game/storage";
-import type { GameMode, OwnedInventory, OwnedItemId } from "@/lib/game/types";
+import type { GameMode, OwnedInventory } from "@/lib/game/types";
 import { useGameStore } from "@/lib/game/store";
 import { cn } from "@/lib/utils";
 
@@ -17,24 +16,21 @@ export function StartSection() {
   const [owned, setOwned] = useState<OwnedInventory>(() => loadOwnedInventoryFromStorage());
 
   useEffect(() => {
+    const next = loadOwnedInventoryFromStorage();
+    setOwned(next);
+    saveOwnedInventoryToStorage(next);
+  }, []);
+
+  useEffect(() => {
     setHellPreview(mode === "hell");
     return () => setHellPreview(false);
   }, [mode, setHellPreview]);
 
   const endFloor = startingFloor + (mode === "hell" ? 11 : 9);
 
-  const skippedMust = useMemo(
-    () =>
-      OWNED_ITEM_DEFS.filter(
-        (d) => d.importance === "strongly_recommended" && !owned[d.id],
-      ),
-    [owned],
-  );
-
-  const toggleOwned = (id: OwnedItemId, importance: (typeof OWNED_ITEM_DEFS)[number]["importance"]) => {
-    if (importance === "required") return;
+  const toggleKneepads = () => {
     setOwned((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
+      const next = { ...prev, 护膝: !prev.护膝 };
       saveOwnedInventoryToStorage(next);
       return next;
     });
@@ -130,26 +126,19 @@ export function StartSection() {
             </div>
           </div>
 
-          <div className="mt-5 border-t pt-4">
-            <p className="text-sm font-medium">我有的</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {OWNED_ITEM_DEFS.map((item) => (
-                <OwnedToggle
-                  key={item.id}
-                  selected={owned[item.id]}
-                  label={item.name}
-                  locked={item.importance === "required"}
-                  hint={item.hint}
-                  onClick={() => toggleOwned(item.id, item.importance)}
-                />
-              ))}
-            </div>
-            {skippedMust.length > 0 && (
-              <p className="mt-2 text-xs text-destructive">
-                未勾选{skippedMust.map((i) => i.name).join("、")}
-              </p>
+          <button
+            type="button"
+            onClick={toggleKneepads}
+            className={cn(
+              "mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
+              owned.护膝
+                ? "border-foreground/30 bg-muted/50"
+                : "border-border text-muted-foreground hover:bg-muted/50",
             )}
-          </div>
+          >
+            {owned.护膝 && <Check className="size-3.5" />}
+            我有护膝
+          </button>
 
           <Button
             size="lg"
@@ -167,37 +156,5 @@ export function StartSection() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function OwnedToggle({
-  selected,
-  label,
-  locked,
-  hint,
-  onClick,
-}: {
-  selected: boolean;
-  label: string;
-  locked: boolean;
-  hint: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      title={hint}
-      disabled={locked}
-      onClick={onClick}
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
-        selected
-          ? "border-foreground/30 bg-muted/50"
-          : "border-border text-muted-foreground hover:bg-muted/50",
-      )}
-    >
-      {selected && <Check className="size-3.5" />}
-      {label}
-    </button>
   );
 }

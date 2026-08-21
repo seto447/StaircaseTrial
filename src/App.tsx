@@ -58,6 +58,7 @@ function App() {
           <p className="text-xs leading-relaxed text-muted-foreground">
             虚构模拟，请遵守法律与场地规则，感到不适请停止。
           </p>
+          <p className="mt-2 text-xs text-muted-foreground">v3.1</p>
         </footer>
       </div>
 

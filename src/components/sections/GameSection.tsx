@@ -9,6 +9,7 @@ import {
   calculateTaskScore,
   getKeepClothingCost,
   getTotalFloors,
+  HELL_TASK_FLOORS,
 } from "@/lib/game/constants";
 import type { ClothingItem } from "@/lib/game/types";
 import { getWearAdvice, wearActionItems, wearActionLabel } from "@/lib/game/advisor";
@@ -40,7 +41,6 @@ export function GameSection() {
   const displayFloor = getDisplayFloor(state.currentFloor, state.startingFloor);
   const totalFloors = getTotalFloors(state.mode);
   const startFloor = state.startingFloor;
-  const endFloor = getDisplayFloor(totalFloors, state.startingFloor);
 
   const climbing = state.assignedClimbingTask;
   const floorTask = state.currentTask;
@@ -123,10 +123,8 @@ export function GameSection() {
       <StairProgress
         completed={state.currentFloor - 1}
         total={totalFloors}
-        floorLabel={`${displayFloor}层`}
-        startLabel={`${startFloor}层`}
-        endLabel={state.mode === "hell" ? "终局" : `${endFloor}层`}
-        hellFrom={state.mode === "hell" ? 10 : undefined}
+        startingFloor={startFloor}
+        hellFloors={state.mode === "hell" ? HELL_TASK_FLOORS : undefined}
       />
 
       {hasVoucherUi && (
@@ -158,28 +156,25 @@ export function GameSection() {
         <div key={floorTask?.id ?? climbing?.id} className="task-enter space-y-4">
           <div>
             <h2 className="text-lg font-semibold leading-tight sm:text-xl">{taskName}</h2>
-            {task.description && (
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{task.description}</p>
+            {(wearActions.length > 0 || task.description) && (
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {wearActions.map((item) => (
+                  <span
+                    key={`${item.item}-${item.verb}`}
+                    className={cn(
+                      "mr-1.5 inline-flex items-center rounded-full border px-3 py-1.5 align-middle text-sm",
+                      item.tone === "missing"
+                        ? "border-destructive/40 text-destructive"
+                        : "border-foreground/30 bg-muted/50 text-foreground",
+                    )}
+                  >
+                    {wearActionLabel(item)}
+                  </span>
+                ))}
+                {task.description}
+              </p>
             )}
           </div>
-
-          {wearActions.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {wearActions.map((item) => (
-                <span
-                  key={`${item.item}-${item.verb}`}
-                  className={cn(
-                    "inline-flex items-center rounded-full border px-3 py-1.5 text-sm",
-                    item.tone === "missing"
-                      ? "border-destructive/40 text-destructive"
-                      : "border-foreground/30 bg-muted/50",
-                  )}
-                >
-                  {wearActionLabel(item)}
-                </span>
-              ))}
-            </div>
-          )}
 
           <div className="grid gap-2">
             {controls.showCompleteTask && (
