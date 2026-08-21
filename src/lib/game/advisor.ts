@@ -6,6 +6,7 @@ import {
   getClimbingTargetMap,
   getDisplayFloor,
   getEnding,
+  sanitizeClothing,
   STRIPPABLE_CLOTHING_ITEMS,
   tasks,
 } from "./constants";
@@ -62,15 +63,15 @@ export const OWNED_ITEM_DEFS: OwnedItemDef[] = [
     id: "内裤",
     name: "内裤",
     group: "wear",
-    importance: "strongly_recommended",
-    hint: "叼嘴、垫地、包住、塞口都很常见，不带会很难做",
+    importance: "required",
+    hint: "叼嘴、垫地、包住、塞口都会用到，必须带上；出门不必穿",
   },
   {
     id: "短袜",
     name: "短袜",
     group: "wear",
-    importance: "strongly_recommended",
-    hint: "舔袜、套头、堵嘴、绑手都要用，几乎每局都会抽到",
+    importance: "required",
+    hint: "舔袜、套头、堵嘴、绑手都会用到，必须带上；出门不必穿",
   },
   {
     id: "上衣",
@@ -86,55 +87,6 @@ export const OWNED_ITEM_DEFS: OwnedItemDef[] = [
     importance: "recommended",
     hint: "跪爬任务很多，建议戴，但没有也能做",
   },
-  {
-    id: "口球",
-    name: "口球",
-    group: "wear",
-    importance: "optional",
-    hint: "口塞任务可用内裤或短袜代替",
-  },
-  {
-    id: "贞操锁",
-    name: "贞操锁",
-    group: "wear",
-    importance: "optional",
-    hint: "低分结局才会用到，开局不必带",
-  },
-  {
-    id: "备用短袜",
-    name: "备用短袜",
-    group: "extra",
-    importance: "strongly_recommended",
-    hint: "舔脏、尿湿、堵嘴后需要换一双",
-  },
-  {
-    id: "备用内裤",
-    name: "备用内裤",
-    group: "extra",
-    importance: "recommended",
-    hint: "垫地、塞口、尿湿后需要换",
-  },
-  {
-    id: "纸巾",
-    name: "纸巾/湿巾",
-    group: "extra",
-    importance: "recommended",
-    hint: "排尿与清理任务会用到",
-  },
-  {
-    id: "水",
-    name: "小瓶水",
-    group: "extra",
-    importance: "optional",
-    hint: "可模拟体液，非必须",
-  },
-  {
-    id: "袋子",
-    name: "袋子",
-    group: "extra",
-    importance: "optional",
-    hint: "脏衣物与湿巾收纳",
-  },
 ];
 
 type NeedFlag =
@@ -145,11 +97,6 @@ type NeedFlag =
   | "shirt"
   | "knee"
   | "knee!"
-  | "spareSock"
-  | "spareBrief"
-  | "tissue"
-  | "bag"
-  | "water"
   | "lower"
   | "bare"
   | "kneel"
@@ -213,21 +160,6 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
         n.recommend.push("护膝");
         n.wear.护膝 = "on";
         break;
-      case "spareSock":
-        n.recommend.push("备用短袜");
-        break;
-      case "spareBrief":
-        n.recommend.push("备用内裤");
-        break;
-      case "tissue":
-        n.recommend.push("纸巾");
-        break;
-      case "bag":
-        n.recommend.push("袋子");
-        break;
-      case "water":
-        n.recommend.push("水");
-        break;
       case "lower":
         n.lowerBare = true;
         n.wear.长裤 = "off";
@@ -246,7 +178,6 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
         break;
       case "urine":
         n.urine = true;
-        n.recommend.push("纸巾");
         break;
       case "photo":
         n.photo = true;
@@ -291,7 +222,6 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
         n.wear.长裤 = "off";
         n.wear.内裤 = "off";
         n.wear.短袜 = "off";
-        n.wear.口球 = "off";
         break;
     }
   }
@@ -301,7 +231,7 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
 }
 
 const TASK_NEEDS: Record<string, TaskNeeds> = {
-  A1: needs("sock", "spareSock", "wrapSock"),
+  A1: needs("sock", "wrapSock"),
   A2: needs(),
   A3: needs("mouthBrief"),
   A4: needs("wrapSock"),
@@ -313,7 +243,7 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   A11: needs("lower"),
   A12: needs("lower"),
   A13: needs("urine", "lower"),
-  A14: needs("sock", "spareSock", "urine"),
+  A14: needs("sock", "urine"),
   A15: needs("urine", "lower"),
   A16: needs("urine", "kneel"),
   A17: needs("sound"),
@@ -333,7 +263,7 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   A31: needs("brief"),
   A32: needs(),
 
-  B1: needs("brief", "spareBrief", "kneel"),
+  B1: needs("brief", "kneel"),
   B2: needs("lower"),
   B3: needs("lower"),
   B4: needs("brief", "lower"),
@@ -345,7 +275,7 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   B10: needs("kneel", "lower"),
   B11: needs("urine", "lower"),
   B12: needs("urine"),
-  B13: needs("brief", "spareBrief", "urine"),
+  B13: needs("brief", "urine"),
   B14: needs("urine"),
   B16: needs("photo", "lower"),
   B17: needs("brief", "photo"),
@@ -353,7 +283,7 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   B20: needs(),
   B21: needs(),
   B22: needs("rollShirt"),
-  B23: needs("mouthSock", "spareSock", "kneel"),
+  B23: needs("mouthSock", "kneel"),
   B24: needs("kneeOnly", "kneel"),
   B25: needs("lower"),
   B26: needs("lower"),
@@ -376,9 +306,9 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   C8: needs("lower"),
   C9: needs("rollShirt", "lower"),
   C10: needs("bare"),
-  C11: needs("urine", "bag", "photo", "lower"),
+  C11: needs("urine", "photo", "lower"),
   C12: needs("urine"),
-  C13: needs("urine", "bag"),
+  C13: needs("urine"),
   C14: needs("urine"),
   C16: needs("photo", "urine", "bare"),
   C17: needs("photo", "bare"),
@@ -430,7 +360,7 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   H1: needs("lower"),
   H2: needs("lower"),
   H3: needs("kneel", "bare"),
-  H5: needs("urine", "bag", "photo"),
+  H5: needs("urine", "photo"),
   H6: needs("photo", "bare"),
   H7: needs("photo", "bare"),
   H8: needs("kneel", "bare"),
@@ -469,7 +399,6 @@ export function getTaskNeeds(task: Task): TaskNeeds {
   const n = mapped ? { ...mapped, wear: { ...mapped.wear }, requireAll: [...mapped.requireAll], requireAny: mapped.requireAny.map((g) => [...g]), recommend: [...mapped.recommend] } : needs(...inferNeedsFromText(task));
   if ((task.urineBonus ?? 0) > 0) {
     n.urine = true;
-    if (!n.recommend.includes("纸巾")) n.recommend.push("纸巾");
   }
   return n;
 }
@@ -808,8 +737,8 @@ export function resolveTaskDescription(
   if (!clothing.上衣) {
     text = text
       .replaceAll("（如有上衣，上衣卷起）", "")
-      .replaceAll("同时把上衣完全卷到腋下 + ", "")
-      .replaceAll("上衣卷起 + ", "");
+      .replaceAll("上衣完全卷到腋下，", "")
+      .replaceAll("上衣卷起，", "");
   }
 
   if (!clothing.长裤) {
@@ -851,8 +780,8 @@ export function concretizeDescription(
     const seconds = pickOne([60, 90, 120]);
     const worn = STRIPPABLE_CLOTHING_ITEMS.filter((item) => clothing[item]);
     text = worn.length
-      ? `限时${seconds}秒爬完两层。超时脱掉${pickOne(worn)}。`
-      : `限时${seconds}秒爬完两层。超时罚跪30秒。`;
+      ? `限时${seconds}s爬完两层。超时脱掉${pickOne(worn)}。`
+      : `限时${seconds}s爬完两层。超时罚跪30s。`;
   }
 
   text = text.replace(
@@ -866,7 +795,7 @@ export function concretizeDescription(
   if (text.includes("嘴里塞着衣物")) {
     text = text.replace(
       "嘴里塞着衣物",
-      `嘴里塞着${pickClothing(["内裤", "短袜", "口球"], clothing, owned)}`,
+      `嘴里塞着${pickClothing(["内裤", "短袜"], clothing, owned)}`,
     );
   }
   text = text.replace("（制造被拍风险感）", "");
@@ -947,8 +876,8 @@ export function resolveEnding(state: GameState): string {
     const desc = resolveTaskDescription(extra.description, state.clothing);
     const follow =
       endingsNormal.find((ending) => ending.minScore === 1)?.description ??
-      "禁止射精，裸体罚跪15分钟，戴贞操锁3天，短袜塞嘴回家";
-    return `加罚：${extra.name}\n${desc}\n\n${follow}`;
+      "不准射，裸体罚跪至少15分钟，戴贞操锁3天，短袜塞嘴里回家";
+    return `当场再做：${extra.name}\n${desc}\n\n${follow}`;
   }
   return getEnding(state.score, state.mode);
 }
@@ -971,7 +900,7 @@ export function getTargetClothing(
   clothing: Record<ClothingItem, boolean>,
   owned: OwnedInventory,
 ): Record<ClothingItem, boolean> {
-  const next = { ...clothing };
+  const next = sanitizeClothing(clothing);
   if (!task) return next;
   const n = getTaskNeeds(task);
 
@@ -1015,6 +944,7 @@ export function getWearAdvice(
   owned: OwnedInventory,
 ): WearAdvice | null {
   if (!task) return null;
+  clothing = sanitizeClothing(clothing);
   const n = getTaskNeeds(task);
   const target = getTargetClothing(task, clothing, owned);
   const items: WearInstruction[] = [];
@@ -1062,12 +992,13 @@ export function getWearAdvice(
 
   if (n.kneeOnly) {
     pushWear("护膝", "on");
-    for (const item of ["上衣", "长裤", "内裤", "短袜", "口球"] as ClothingItem[]) {
+    for (const item of ["上衣", "长裤", "内裤", "短袜"] as ClothingItem[]) {
       if (clothing[item]) pushWear(item, "off");
     }
   } else {
     const seen = new Set<ClothingItem>();
     for (const [key, role] of Object.entries(n.wear) as [ClothingItem, WearRole][]) {
+      if (!CLOTHING_ITEMS.includes(key)) continue;
       seen.add(key);
       pushWear(key, role);
     }
@@ -1097,12 +1028,8 @@ export function getWearAdvice(
     }
   }
 
-  if (n.urine) extras.push("这是排尿/标记任务，准备纸巾，注意清理。");
   if (n.photo) extras.push("需要手机：拍照、录像或倒计时。");
   if (n.sound) extras.push("需要出声，先听楼道里有没有人。");
-  if (owned.备用短袜 && (n.requireAll.includes("短袜") || n.recommend.includes("备用短袜"))) {
-    extras.push("脏袜请换备用短袜，不要穿回去。");
-  }
 
   const actionBits = items
     .filter((i) => i.tone === "action" || i.tone === "prop" || i.tone === "missing")

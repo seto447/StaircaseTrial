@@ -6,7 +6,7 @@ export type Pt = { x: number; y: number; depth: number };
 export type VolumeKind = "body" | "face" | "worn" | "idle" | "removed";
 
 /** 没戴时仍以灰色块面画出，不消失 */
-const PERSISTENT_ITEMS: ClothingItem[] = ["口球", "贞操锁"];
+const PERSISTENT_ITEMS: ClothingItem[] = [];
 
 export interface Volume {
   id: string;
@@ -14,7 +14,7 @@ export interface Volume {
   item?: ClothingItem;
   /** 已脱时是否并入该件的单条虚影 */
   ghost?: boolean;
-  /** 贞操锁底环等，始终深灰 */
+  /** 始终深灰的配件描边 */
   tone?: "base";
   /** 对应衣物穿上时不再画这节身体，避免套两层椭球 */
   coveredBy?: ClothingItem;
@@ -161,31 +161,6 @@ function convexHull(pts: Pt[]): Pt[] {
   return lower.concat(upper);
 }
 
-function frameAround(axis: Vec3): { x: Vec3; y: Vec3; z: Vec3 } {
-  const y = norm(axis);
-  const tmp: Vec3 = Math.abs(y[1]) > 0.92 ? WORLD_X : WORLD_Y;
-  const x = norm(cross(tmp, y));
-  const z = cross(y, x);
-  return { x, y, z };
-}
-
-function arcPoints(
-  c: Vec3,
-  axis: Vec3,
-  radius: number,
-  start: number,
-  end: number,
-  n = 16,
-): Vec3[] {
-  const f = frameAround(axis);
-  const pts: Vec3[] = [];
-  for (let i = 0; i <= n; i++) {
-    const a = start + ((end - start) * i) / n;
-    pts.push(add(c, add(scale(f.x, radius * Math.cos(a)), scale(f.z, radius * Math.sin(a)))));
-  }
-  return pts;
-}
-
 function circleOnGround(radius: number, n = 40): Vec3[] {
   const pts: Vec3[] = [];
   for (let i = 0; i <= n; i++) {
@@ -305,40 +280,13 @@ export function buildMannequin(): MannequinModel {
       shell("kneeR", "护膝", ball(knR, 0.05)),
       shell("kneeL", "护膝", ball(knL, 0.05)),
     ],
-    口球: [shell("gag", "口球", ball([0, 1.615, 0.152], 0.03))],
-    贞操锁: [
-      shell(
-        "cage",
-        "贞操锁",
-        capsule([0.01, 0.86, 0.07], [0.01, 0.83, 0.12], 0.018),
-      ),
-    ],
   };
 
-  const wires: Wire[] = [
-    {
-      item: "口球",
-      points: arcPoints([0, 1.618, 0.038], WORLD_Y, 0.1, 0.45, 2.55, 12),
-      width: 1.6,
-    },
-    {
-      item: "口球",
-      points: arcPoints([0, 1.618, 0.038], WORLD_Y, 0.1, -0.45, -2.55, 12),
-      width: 1.6,
-    },
-    {
-      item: "贞操锁",
-      points: arcPoints([0.01, 0.86, 0.06], [0, -0.28, 1], 0.03, -1.05, 1.05, 12),
-      tone: "base",
-      width: 1.8,
-    },
-  ];
+  const wires: Wire[] = [];
 
   const anchors: Record<ClothingItem, Vec3> = {
-    口球: [0, 1.615, 0.185],
     上衣: [0, 1.28, 0.14],
     内裤: [0, 0.9, 0.12],
-    贞操锁: [0.02, 0.84, 0.13],
     长裤: [0.12, 0.62, 0.07],
     护膝: [0.11, 0.47, 0.04],
     短袜: [0.1, 0.04, 0.14],

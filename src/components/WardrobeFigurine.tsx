@@ -26,11 +26,9 @@ const ALL_ITEMS: { key: ClothingItem; label: string }[] = [
   { key: "内裤", label: "内裤" },
   { key: "短袜", label: "短袜" },
   { key: "护膝", label: "护膝" },
-  { key: "口球", label: "口球" },
-  { key: "贞操锁", label: "贞操锁" },
 ];
 
-const EQUIP_AS_DAI = new Set<ClothingItem>(["护膝", "口球", "贞操锁"]);
+const EQUIP_AS_DAI = new Set<ClothingItem>(["护膝"]);
 
 function wearStatus(key: ClothingItem, on: boolean): string {
   if (EQUIP_AS_DAI.has(key)) return on ? "戴" : "不戴";
@@ -39,7 +37,7 @@ function wearStatus(key: ClothingItem, on: boolean): string {
 
 const DEFAULT_YAW = 22;
 
-const LEFT_LABELS: ClothingItem[] = ["口球", "内裤", "贞操锁"];
+const LEFT_LABELS: ClothingItem[] = ["内裤"];
 const RIGHT_LABELS: ClothingItem[] = ["上衣", "长裤", "护膝", "短袜"];
 
 function layoutLabels(anchors: Record<ClothingItem, { x: number; y: number }>) {

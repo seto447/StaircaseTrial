@@ -3,83 +3,74 @@ import { cn } from "@/lib/utils";
 interface StairProgressProps {
   completed: number;
   total?: number;
-  floorLabel?: string;
-  startLabel?: string;
-  endLabel?: string;
-  /** 从此下标起为地狱加层：该格是任务层，最后一格是结算 */
-  hellFrom?: number;
+  startingFloor?: number;
+  /** 地狱任务层（内部楼层号，如 9、11） */
+  hellFloors?: readonly number[];
   className?: string;
 }
 
 export function StairProgress({
   completed,
   total = 10,
-  floorLabel,
-  startLabel = "开始",
-  endLabel = "终局",
-  hellFrom,
+  startingFloor = 1,
+  hellFloors,
   className,
 }: StairProgressProps) {
   const steps = Array.from({ length: total }, (_, i) => i);
   const current = Math.min(Math.max(0, completed), total);
-  const onHellTask = hellFrom != null && current === hellFrom;
+  const hellSet = new Set(hellFloors ?? []);
   const stepRise = total > 10 ? 2.4 : 3;
 
   return (
-    <div className={cn("w-full", floorLabel && "pt-5", className)}>
+    <div className={cn("w-full", className)}>
       <div
-        className="relative flex items-end gap-[2px]"
+        className="flex items-end gap-[2px]"
         role="img"
         aria-label={
-          hellFrom != null
-            ? `楼层 ${startLabel} 至 ${endLabel}，共 ${total} 层，末层为结算`
-            : `楼层 ${startLabel} 至 ${endLabel}，共 ${total} 层`
+          hellFloors?.length
+            ? `楼层 ${startingFloor} 至 ${startingFloor + total - 1}，共 ${total} 层，第 ${hellFloors.join("、")} 层为地狱任务`
+            : `楼层 ${startingFloor} 至 ${startingFloor + total - 1}，共 ${total} 层`
         }
       >
-        {floorLabel && current < total && (
-          <span
-            className={cn(
-              "pointer-events-none absolute -top-5 -translate-x-1/2 rounded px-1.5 py-0.5 text-[10px] font-medium leading-none",
-              onHellTask
-                ? "stair-floor-label-hell"
-                : "bg-foreground text-background",
-            )}
-            style={{ left: `${((current + 0.5) / total) * 100}%` }}
-          >
-            {floorLabel}
-          </span>
-        )}
         {steps.map((i) => {
           const lit = i < current;
           const isCurrent = i === current && current < total;
-          const isHellTask = hellFrom != null && i === hellFrom;
-          const isHellEnd = hellFrom != null && i === total - 1;
-          const height =
-            10 +
-            i * stepRise +
-            (isHellTask ? 4 : 0) +
-            (isHellEnd ? 8 : 0);
+          const isHellTask = hellSet.has(i + 1);
+          const height = 10 + i * stepRise + (isHellTask ? 6 : 0);
+          const floor = startingFloor + i;
           return (
             <div
               key={i}
-              style={{ height: `${height}px` }}
               className={cn(
-                "flex-1 rounded-sm border",
-                isHellTask && "stair-step-hell stair-step-hell-gate",
-                isHellTask && lit && "is-lit",
-                isHellTask && isCurrent && "is-current",
-                isHellEnd && "stair-step-end",
-                !isHellTask && !isHellEnd && lit && "border-foreground/20 bg-foreground",
-                !isHellTask && !isHellEnd && isCurrent && "border-foreground bg-foreground",
-                !isHellTask && !isHellEnd && !lit && !isCurrent && "border-border bg-muted",
+                "flex min-w-0 flex-1 flex-col items-stretch gap-1",
+                isHellTask && "stair-hell-col",
               )}
-            />
+            >
+              <div
+                style={{ height: `${height}px` }}
+                className={cn(
+                  "rounded-sm border",
+                  isHellTask && "stair-step-hell stair-step-hell-gate",
+                  isHellTask && lit && "is-lit",
+                  isHellTask && isCurrent && "is-current",
+                  !isHellTask && lit && "border-foreground/20 bg-foreground",
+                  !isHellTask && isCurrent && "border-foreground bg-foreground",
+                  !isHellTask && !lit && !isCurrent && "border-border bg-muted",
+                )}
+              />
+              <span
+                className={cn(
+                  "truncate text-center text-[9px] leading-none tabular-nums sm:text-[10px]",
+                  isCurrent && "font-medium text-foreground",
+                  !isCurrent && isHellTask && "stair-end-hell",
+                  !isCurrent && !isHellTask && "text-muted-foreground",
+                )}
+              >
+                {floor}楼
+              </span>
+            </div>
           );
         })}
-      </div>
-      <div className="mt-2 flex justify-between text-[11px] text-muted-foreground">
-        <span>{startLabel}</span>
-        <span className={cn(hellFrom != null && "stair-end-hell")}>{endLabel}</span>
       </div>
     </div>
   );
