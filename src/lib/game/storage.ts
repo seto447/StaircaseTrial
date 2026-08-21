@@ -1,9 +1,10 @@
 import { createDefaultOwnedInventory } from "./constants";
-import type { GameHistoryRecord, OwnedInventory } from "./types";
+import type { GameHistoryRecord, OwnedInventory, Persona } from "./types";
 
 const GAME_STATE_KEY = "gameState";
 const HISTORY_KEY = "staircaseGameHistory";
 const OWNED_KEY = "staircaseOwnedItems";
+const PERSONA_KEY = "staircasePersona";
 
 export function loadGameStateFromStorage(): unknown | null {
   try {
@@ -71,6 +72,23 @@ export function loadOwnedInventoryFromStorage(): OwnedInventory {
 export function saveOwnedInventoryToStorage(owned: OwnedInventory): void {
   try {
     localStorage.setItem(OWNED_KEY, JSON.stringify(owned));
+  } catch {
+    // 忽略写入失败
+  }
+}
+
+export function loadPersonaFromStorage(): Persona {
+  try {
+    const raw = localStorage.getItem(PERSONA_KEY);
+    return raw === "female" ? "female" : "male";
+  } catch {
+    return "male";
+  }
+}
+
+export function savePersonaToStorage(persona: Persona): void {
+  try {
+    localStorage.setItem(PERSONA_KEY, persona);
   } catch {
     // 忽略写入失败
   }

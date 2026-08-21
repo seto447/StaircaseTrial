@@ -5,9 +5,17 @@ import type {
   GameState,
   OwnedInventory,
   OwnedItemId,
+  Persona,
   ShopItem,
   Task,
 } from "./types";
+import {
+  endingsHellFemale,
+  endingsNormalFemale,
+  tasksFemale,
+} from "./tasksFemale";
+
+export { tasksFemale, endingsNormalFemale, endingsHellFemale };
 
 export const DEFAULT_OWNED_INVENTORY: OwnedInventory = {
   上衣: true,
@@ -28,7 +36,7 @@ export function createDefaultOwnedInventory(
 }
 
 export const TOTAL_FLOORS_NORMAL = 10;
-export const TOTAL_FLOORS_HELL = 12;
+export const TOTAL_FLOORS_HELL = 11;
 /** @deprecated 使用 getTotalFloors(mode) */
 export const TOTAL_FLOORS_FOR_PROGRESS = TOTAL_FLOORS_NORMAL;
 export const TOTAL_PROGRESS_STEPS_NORMAL = 10;
@@ -102,7 +110,7 @@ export const CLIMBING_TARGET_MAP_NORMAL: Record<number, number> = {
   5: 7,
   8: 10,
 };
-/** 地狱：8 上楼后进入 9（电梯厅外围），再经 10 决策爬至 11（核心），12 结算 */
+/** 地狱：8 上楼后进入 9（电梯厅外围），再经 10 决策爬至 11（核心），11 完成后结算 */
 export const CLIMBING_TARGET_MAP_HELL: Record<number, number> = {
   2: 4,
   5: 7,
@@ -325,6 +333,28 @@ export const endingsHell: EndingDef[] = [
 /** @deprecated 使用 endingsNormal / getEnding(score, mode) */
 export const endings = endingsNormal;
 
+export function getPersonaLabel(persona: Persona = "male"): string {
+  return persona === "female" ? "母狗" : "公狗";
+}
+
+export function formatRunLabel(
+  mode: GameMode = "normal",
+  persona: Persona = "male",
+): string {
+  return `${mode === "hell" ? "地狱" : "普通"} · ${getPersonaLabel(persona)}`;
+}
+
+export function getTasks(persona: Persona = "male"): Record<string, Task[]> {
+  return persona === "female" ? tasksFemale : tasks;
+}
+
+export function getEndings(mode: GameMode = "normal", persona: Persona = "male"): EndingDef[] {
+  if (persona === "female") {
+    return mode === "hell" ? endingsHellFemale : endingsNormalFemale;
+  }
+  return mode === "hell" ? endingsHell : endingsNormal;
+}
+
 export const shopItems: ShopItem[] = [
   {
     id: "长裤",
@@ -417,6 +447,7 @@ export function rollStartingScore(mode: GameMode = "normal"): number {
 export function createInitialGameState(
   startingFloor = 1,
   mode: GameMode = "normal",
+  persona: Persona = "male",
 ): GameState {
   return {
     score: rollStartingScore(mode),
@@ -426,6 +457,7 @@ export function createInitialGameState(
     gamePhase: "initial",
     mode,
     selectedMode: mode,
+    persona,
     clothing: {
       上衣: false,
       长裤: false,
@@ -469,8 +501,12 @@ export function getDisplayFloor(
   return internalFloor + startingFloor - 1;
 }
 
-export function getEnding(score: number, mode: GameMode = "normal"): string {
-  const list = mode === "hell" ? endingsHell : endingsNormal;
+export function getEnding(
+  score: number,
+  mode: GameMode = "normal",
+  persona: Persona = "male",
+): string {
+  const list = getEndings(mode, persona);
   for (const ending of list) {
     if (score >= ending.minScore) {
       return ending.description;
@@ -488,12 +524,14 @@ export function getProgressPercent(state: GameState): number {
 export function getTaskPoolForFloor(
   floor: number,
   mode: GameMode = "normal",
+  persona: Persona = "male",
 ): { pool: Task[]; phase: string } | null {
-  if (floor === 1 || floor === 2) return { pool: tasks.A, phase: "A" };
-  if (floor === 4 || floor === 5) return { pool: tasks.B, phase: "B" };
-  if (floor === 7 || floor === 8) return { pool: tasks.C, phase: "C" };
+  const pool = getTasks(persona);
+  if (floor === 1 || floor === 2) return { pool: pool.A, phase: "A" };
+  if (floor === 4 || floor === 5) return { pool: pool.B, phase: "B" };
+  if (floor === 7 || floor === 8) return { pool: pool.C, phase: "C" };
   if (mode === "hell" && (floor === 9 || floor === 11)) {
-    return { pool: tasks.H, phase: "H" };
+    return { pool: pool.H, phase: "H" };
   }
   return null;
 }

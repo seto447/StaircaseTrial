@@ -30,6 +30,7 @@ export function ShopSection() {
   const clothing = useGameStore((s) => s.state.clothing);
   const owned = useGameStore((s) => s.state.owned);
   const mode = useGameStore((s) => s.state.mode);
+  const persona = useGameStore((s) => s.state.persona);
   const buyItem = useGameStore((s) => s.buyItem);
   const returnItem = useGameStore((s) => s.returnItem);
   const canBuyItem = useGameStore((s) => s.canBuyItem);
@@ -67,6 +68,11 @@ export function ShopSection() {
           {mode === "hell" && (
             <span className="rounded bg-foreground px-1.5 py-0.5 text-[10px] font-bold leading-none text-background">
               地狱
+            </span>
+          )}
+          {persona === "female" && (
+            <span className="rounded border px-1.5 py-0.5 text-[10px] font-bold leading-none">
+              母狗
             </span>
           )}
         </div>

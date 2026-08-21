@@ -29,7 +29,7 @@ import {
   sanitizeClothing,
   shopItems,
   SKIP_TASK_COST,
-  tasks,
+  getTasks,
 } from "./constants";
 import {
   appendHistoryRecord,
@@ -38,6 +38,7 @@ import {
   loadHistoryFromStorage,
   saveGameStateToStorage,
   saveOwnedInventoryToStorage,
+  savePersonaToStorage,
 } from "./storage";
 import type {
   AppView,
@@ -47,6 +48,7 @@ import type {
   GameState,
   Inventory,
   OwnedInventory,
+  Persona,
 } from "./types";
 
 interface ConfirmRequest {
@@ -65,7 +67,7 @@ interface GameStore {
   setHellPreview: (value: boolean) => void;
   setView: (view: AppView) => void;
   hydrate: () => void;
-  startGame: (startingFloor: number, mode?: GameMode, owned?: OwnedInventory) => void;
+  startGame: (startingFloor: number, mode?: GameMode, owned?: OwnedInventory, persona?: Persona) => void;
   rerollShopScore: () => boolean;
   buyItem: (itemId: string, price: number) => boolean;
   returnItem: (itemId: string) => boolean;
@@ -122,6 +124,7 @@ function normalizeLoadedState(raw: unknown): GameState {
     data.selectedMode === "hell" || data.selectedMode === "normal"
       ? data.selectedMode
       : mode;
+  const persona: Persona = data.persona === "female" ? "female" : "male";
   const totalFloors = getTotalFloors(mode);
   const totalProgress = getTotalProgressSteps(mode);
 
@@ -153,6 +156,7 @@ function normalizeLoadedState(raw: unknown): GameState {
     ...data,
     mode,
     selectedMode,
+    persona,
     score: clampScore(data.score, base.score),
     currentFloor: normalizedCurrentFloor,
     maxFloor: normalizedMaxFloor,
@@ -231,7 +235,7 @@ function persist(state: GameState) {
 
 function generateNewTask(state: GameState): Partial<GameState> {
   const floor = state.currentFloor;
-  const taskInfo = getTaskPoolForFloor(floor, state.mode);
+  const taskInfo = getTaskPoolForFloor(floor, state.mode, state.persona);
 
   if (!taskInfo) {
     if (getClimbingDecisionFloors(state.mode).includes(floor)) {
@@ -278,7 +282,7 @@ function applyClimbing(state: GameState): Pick<
   GameState,
   "assignedClimbingTask" | "currentTask" | "taskMessage"
 > {
-  const availableTasks = tasks["上楼任务"];
+  const availableTasks = getTasks(state.persona)["上楼任务"];
   const planned = state.missionPlan
     ? getPlannedClimbingTask(state.missionPlan, state.currentFloor)
     : null;
@@ -393,6 +397,10 @@ async function applyStripEvent(
   };
 }
 
+function isHellFinale(state: Pick<GameState, "mode" | "currentFloor">): boolean {
+  return state.mode === "hell" && state.currentFloor === 11;
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   state: createInitialGameState(),
   view: "start",
@@ -441,16 +449,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ confirmRequest: null });
   },
 
-  startGame: (startingFloor, mode = "normal", owned) => {
+  startGame: (startingFloor, mode = "normal", owned, persona = "male") => {
     const floor = Math.max(1, Math.min(99, Math.floor(startingFloor) || 1));
     const ownedInventory = normalizeOwnedInventory(owned);
     saveOwnedInventoryToStorage(ownedInventory);
-    const initial = createInitialGameState(floor, mode);
+    savePersonaToStorage(persona);
+    const initial = createInitialGameState(floor, mode, persona);
     const pantsPrice = shopItems.find((i) => i.id === "长裤")?.price ?? 5;
     const withOwned: GameState = {
       ...initial,
       owned: ownedInventory,
-      missionPlan: generateMissionPlan(mode, ownedInventory),
+      missionPlan: generateMissionPlan(mode, ownedInventory, persona),
     };
     const state: GameState = {
       ...withOwned,
@@ -709,8 +718,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       hellTasksCompleted: state.hellTasksCompleted + (isHellTask ? 1 : 0),
     };
 
-    // 延迟剥夺衣物：上一层推迟的，本层强制触发
-    if (next.pendingDelayedStrip) {
+    const hellFinale = isHellFinale({ mode: next.mode, currentFloor });
+
+    // 11 层完成后直接结算，不再投掷剥夺衣物
+    if (hellFinale) {
+      next = { ...next, pendingDelayedStrip: false };
+    } else if (next.pendingDelayedStrip) {
       next = { ...next, pendingDelayedStrip: false };
       next = await applyStripEvent(next, requestConfirm);
     } else {
@@ -757,28 +770,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return;
     }
 
-    // 地狱：9 层 H 完成后直接跳到 11 层再发一发 H（中间 10 为决策层，由玩家点上楼）
-    // 进度：…8b(9) → 爬8→9(10) → 9H(11) → 爬10→11(12 在 confirm) → 11H 完成即终局
-    // 为保持总步数 12：11H 完成时 progress 已在上面 +1 会变成 13，故 11 层不再 +progress（上面已按 taskFloors +1）
-    // 修正：11 计入 task floors 会 +1；爬 10→11 也 +1。目标 12 步 =
-    //   1,2,climb,4,5,climb,7,8a,8b,climb8→9,9H,11H  —— 爬10→11 不占 progress
-    if (next.mode === "hell" && currentFloor === 11) {
-      // 上面已经 progress+1，若从 11 起算会超；回退这次 progress，仅用任务完成推进终局
+    // 地狱：11 层 H 完成即结算，不再抬到 12、也不再脱衣
+    if (hellFinale) {
       next = {
         ...next,
         progressStepsCompleted: Math.min(
           next.progressStepsCompleted,
           getTotalProgressSteps("hell"),
         ),
-        currentFloor: 12,
-        maxFloor: Math.max(next.maxFloor, 12),
         currentTask: null,
+        assignedClimbingTask: null,
         taskMessage: null,
       };
       persist(next);
       set({ state: next });
       get().endGame(
-        `到达顶层 ${getDisplayFloor(12, next.startingFloor)}！游戏结束！`,
+        `到达顶层 ${getDisplayFloor(11, next.startingFloor)}！游戏结束！`,
       );
       return;
     }
@@ -900,6 +907,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       });
       persist(next);
       set({ state: next });
+      if (isHellFinale(next)) {
+        get().endGame(
+          `到达顶层 ${getDisplayFloor(11, next.startingFloor)}！游戏结束！`,
+        );
+      }
       return;
     }
 
@@ -915,6 +927,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
       });
       persist(next);
       set({ state: next });
+      if (isHellFinale(next)) {
+        get().endGame(
+          `到达顶层 ${getDisplayFloor(11, next.startingFloor)}！游戏结束！`,
+        );
+      }
       return;
     }
     await requestConfirm("积分不足且没有跳过任务券，无法跳过。", {
@@ -976,6 +993,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       remainingClothes: Object.values(next.clothing).filter(Boolean).length,
       ending: resolvedEnding,
       mode: next.mode,
+      persona: next.persona,
       hellTasksCompleted: next.hellTasksCompleted,
       urineMarks: next.urineMarks,
     };
@@ -1044,4 +1062,6 @@ export {
   getProgressPercent,
   getTotalProgressSteps,
   KEY_CLOTHING_ITEMS,
+  formatRunLabel,
+  getPersonaLabel,
 } from "./constants";

@@ -1,14 +1,14 @@
 import {
   CLOTHING_ITEMS,
   createDefaultOwnedInventory,
-  endingsNormal,
   getClimbingDecisionFloors,
   getClimbingTargetMap,
   getDisplayFloor,
   getEnding,
+  getEndings,
+  getTasks,
   sanitizeClothing,
   STRIPPABLE_CLOTHING_ITEMS,
-  tasks,
 } from "./constants";
 import type {
   ClothingItem,
@@ -18,6 +18,7 @@ import type {
   MissionPlan,
   OwnedInventory,
   OwnedItemId,
+  Persona,
   Task,
 } from "./types";
 
@@ -262,6 +263,9 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   A30: needs(),
   A31: needs("brief"),
   A32: needs(),
+  A33: needs("rollShirt"),
+  A34: needs("brief"),
+  A35: needs("lower"),
 
   B1: needs("brief", "kneel"),
   B2: needs("lower"),
@@ -295,6 +299,8 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   B34: needs(),
   B35: needs("bare"),
   B36: needs("lower"),
+  B37: needs("rollShirt"),
+  B38: needs("lower", "kneel"),
 
   C1: needs("photo", "lower", "kneel"),
   C2: needs("sockOn", "lower"),
@@ -332,6 +338,8 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   C38: needs("urine"),
   C39: needs("kneel"),
   C40: needs("bare"),
+  C41: needs(),
+  C42: needs("kneel", "bare"),
 
   U1: needs("sockOn", "kneel", "lower"),
   U2: needs("kneel", "knee"),
@@ -356,6 +364,7 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   U28: needs(),
   U29: needs("bare"),
   U30: needs(),
+  U31: needs("rollShirt"),
 
   H1: needs("lower"),
   H2: needs("lower"),
@@ -377,6 +386,7 @@ const TASK_NEEDS: Record<string, TaskNeeds> = {
   H21: needs("bare"),
   H22: needs("kneel", "bare"),
   H24: needs("urine", "photo", "bare"),
+  H25: needs("photo", "bare"),
 };
 
 function inferNeedsFromText(task: Task): NeedFlag[] {
@@ -387,7 +397,7 @@ function inferNeedsFromText(task: Task): NeedFlag[] {
   if (/护膝/.test(text)) flags.push("knee");
   if (/跪|爬|狗姿/.test(text)) flags.push("kneel");
   if (/全裸/.test(text)) flags.push("bare");
-  else if (/下半身/.test(text)) flags.push("lower");
+  else if (/下半身|露逼|掰开逼|掰穴/.test(text)) flags.push("lower");
   if (/尿/.test(text) || (task.urineBonus ?? 0) > 0) flags.push("urine");
   if (/拍|视频|倒计时|免提|录制/.test(text)) flags.push("photo");
   if (/狗叫|娇喘|大声/.test(text)) flags.push("sound");
@@ -439,8 +449,13 @@ function pickBestTask(pool: Task[], owned: OwnedInventory, used: Set<string>): T
   return best[Math.floor(Math.random() * best.length)] ?? pool[0];
 }
 
-export function generateMissionPlan(mode: GameMode, owned: OwnedInventory): MissionPlan {
+export function generateMissionPlan(
+  mode: GameMode,
+  owned: OwnedInventory,
+  persona: Persona = "male",
+): MissionPlan {
   const used = new Set<string>();
+  const pools = getTasks(persona);
   const pick = (pool: Task[], count: number): Task[] => {
     const result: Task[] = [];
     for (let i = 0; i < count; i++) {
@@ -452,22 +467,22 @@ export function generateMissionPlan(mode: GameMode, owned: OwnedInventory): Miss
   };
 
   const floorTasks: Record<number, Task[]> = {
-    1: pick(tasks.A, 1),
-    2: pick(tasks.A, 1),
-    4: pick(tasks.B, 1),
-    5: pick(tasks.B, 1),
-    7: pick(tasks.C, 1),
-    8: pick(tasks.C, 2),
+    1: pick(pools.A, 1),
+    2: pick(pools.A, 1),
+    4: pick(pools.B, 1),
+    5: pick(pools.B, 1),
+    7: pick(pools.C, 1),
+    8: pick(pools.C, 2),
   };
 
   const climbingTasks: Record<number, Task> = {};
   for (const floor of getClimbingDecisionFloors(mode)) {
-    climbingTasks[floor] = pick(tasks["上楼任务"], 1)[0];
+    climbingTasks[floor] = pick(pools["上楼任务"], 1)[0];
   }
 
   if (mode === "hell") {
-    floorTasks[9] = pick(tasks.H, 1);
-    floorTasks[11] = pick(tasks.H, 1);
+    floorTasks[9] = pick(pools.H, 1);
+    floorTasks[11] = pick(pools.H, 1);
   }
 
   return { floorTasks, climbingTasks };
@@ -723,6 +738,7 @@ export function resolveTaskDescription(
       .replaceAll("把内裤脱下", "拿出内裤")
       .replaceAll("脱下内裤", "拿出内裤")
       .replaceAll("「脱内裤→撸20下→再穿上」", "「穿上内裤→撸20下→再脱下」")
+      .replaceAll("「脱内裤→揉20下→再穿上」", "「穿上内裤→揉20下→再脱下」")
       .replaceAll("把内裤脱到脚踝，再提起来", "把内裤在腰间和脚踝间反复穿脱");
   }
 
@@ -833,8 +849,10 @@ export function concretizeDescription(
   const pairs: [string, string[]][] = [
     ["袜面或袜趾", ["袜面", "袜趾"]],
     ["乳头或鸡巴", ["乳头", "鸡巴"]],
+    ["乳头或阴蒂", ["乳头", "阴蒂"]],
     ["站立或跪姿", ["站立", "跪姿"]],
     ["尿液或前列腺液", ["尿液", "前列腺液"]],
+    ["尿液或淫水", ["尿液", "淫水"]],
     ["脸上或胸口", ["脸上", "胸口"]],
     ["楼梯下方或转角", ["楼梯下方", "转角"]],
     ["全裸或半裸", ["全裸", "半裸"]],
@@ -861,25 +879,29 @@ export function concretizeTask<T extends Task>(
   };
 }
 
-function pickOwnedCTask(owned: OwnedInventory): Task {
-  const feasible = tasks.C.filter(
+function pickOwnedCTask(owned: OwnedInventory, persona: Persona = "male"): Task {
+  const poolC = getTasks(persona).C;
+  const feasible = poolC.filter(
     (task) => missingRequiredItems(getTaskNeeds(task), owned).length === 0,
   );
-  const pool = feasible.length > 0 ? feasible : tasks.C;
+  const pool = feasible.length > 0 ? feasible : poolC;
   return pickOne(pool);
 }
 
 /** 结算展示用：0 分当场抽出加罚任务，并落到 1–9 分那档的具体正文。 */
 export function resolveEnding(state: GameState): string {
+  const persona = state.persona === "female" ? "female" : "male";
   if (state.mode === "normal" && state.score <= 0) {
-    const extra = concretizeTask(pickOwnedCTask(state.owned), state.clothing, state.owned);
+    const extra = concretizeTask(pickOwnedCTask(state.owned, persona), state.clothing, state.owned);
     const desc = resolveTaskDescription(extra.description, state.clothing);
     const follow =
-      endingsNormal.find((ending) => ending.minScore === 1)?.description ??
-      "不准射，裸体罚跪至少15分钟，戴贞操锁3天，短袜塞嘴里回家";
+      getEndings("normal", persona).find((ending) => ending.minScore === 1)?.description ??
+      (persona === "female"
+        ? "不准高潮，裸体罚跪至少15分钟，内裤勒进逼缝走回家，短袜塞嘴里"
+        : "不准射，裸体罚跪至少15分钟，戴贞操锁3天，短袜塞嘴里回家");
     return `当场再做：${extra.name}\n${desc}\n\n${follow}`;
   }
-  return getEnding(state.score, state.mode);
+  return getEnding(state.score, state.mode, persona);
 }
 
 const ROLE_VERB: Record<WearRole, { on: string; off: string; keepOn: string; keepOff: string }> = {
