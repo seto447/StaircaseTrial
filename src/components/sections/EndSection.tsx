@@ -4,7 +4,7 @@ import { WardrobeFigurine } from "@/components/WardrobeFigurine";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { CLOTHING_ITEMS, getWornClothingCount } from "@/lib/game/constants";
+import { CLOTHING_ITEMS, formatRunLabel, getWornClothingCount } from "@/lib/game/constants";
 import { getDisplayFloor, useGameStore } from "@/lib/game/store";
 
 export function EndSection() {
@@ -23,6 +23,11 @@ export function EndSection() {
             {state.mode === "hell" && (
               <span className="ml-1.5 rounded bg-foreground px-1.5 py-0.5 text-[10px] font-bold text-background">
                 地狱
+              </span>
+            )}
+            {state.persona === "female" && (
+              <span className="ml-1.5 rounded border px-1.5 py-0.5 text-[10px] font-bold">
+                母狗
               </span>
             )}
           </p>
@@ -44,7 +49,7 @@ export function EndSection() {
             <div className="min-w-0 flex-1 overflow-hidden rounded-lg border">
               <Table>
                 <TableBody>
-                  <Row label="模式" value={state.mode === "hell" ? "地狱" : "普通"} />
+                  <Row label="模式" value={formatRunLabel(state.mode, state.persona)} />
                   <Row
                     label="最高楼层"
                     value={`${getDisplayFloor(state.maxFloor, state.startingFloor)} 层`}

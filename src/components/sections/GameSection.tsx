@@ -111,6 +111,11 @@ export function GameSection() {
                 地狱
               </span>
             )}
+            {state.persona === "female" && (
+              <span className="rounded border px-1.5 py-0.5 text-[10px] font-bold leading-none">
+                母狗
+              </span>
+            )}
           </div>
           <p className="mt-1 flex items-baseline gap-1.5">
             <span className="text-3xl font-semibold tabular-nums tracking-tight">{state.score}</span>

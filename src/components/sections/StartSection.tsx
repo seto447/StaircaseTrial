@@ -3,8 +3,9 @@ import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { loadOwnedInventoryFromStorage, saveOwnedInventoryToStorage } from "@/lib/game/storage";
-import type { GameMode, OwnedInventory } from "@/lib/game/types";
+import { createDefaultOwnedInventory } from "@/lib/game/constants";
+import { loadPersonaFromStorage, saveOwnedInventoryToStorage, savePersonaToStorage } from "@/lib/game/storage";
+import type { GameMode, OwnedInventory, Persona } from "@/lib/game/types";
 import { useGameStore } from "@/lib/game/store";
 import { cn } from "@/lib/utils";
 
@@ -13,20 +14,20 @@ export function StartSection() {
   const setHellPreview = useGameStore((s) => s.setHellPreview);
   const [startingFloor, setStartingFloor] = useState(1);
   const [mode, setMode] = useState<GameMode>("normal");
-  const [owned, setOwned] = useState<OwnedInventory>(() => loadOwnedInventoryFromStorage());
-
-  useEffect(() => {
-    const next = loadOwnedInventoryFromStorage();
-    setOwned(next);
-    saveOwnedInventoryToStorage(next);
-  }, []);
+  const [persona, setPersona] = useState<Persona>(() => loadPersonaFromStorage());
+  const [owned, setOwned] = useState<OwnedInventory>(() => createDefaultOwnedInventory());
 
   useEffect(() => {
     setHellPreview(mode === "hell");
     return () => setHellPreview(false);
   }, [mode, setHellPreview]);
 
-  const endFloor = startingFloor + (mode === "hell" ? 11 : 9);
+  const endFloor = startingFloor + (mode === "hell" ? 10 : 9);
+
+  const selectPersona = (next: Persona) => {
+    setPersona(next);
+    savePersonaToStorage(next);
+  };
 
   const toggleKneepads = () => {
     setOwned((prev) => {
@@ -41,50 +42,48 @@ export function StartSection() {
       <h1 className="pt-2 text-[28px] font-semibold leading-[1.05] tracking-tight sm:pt-4 sm:text-[34px]">
         混凝土楼道里，
         <br />
-        怎么藏着一只全裸的贱狗？
+        怎么藏着一只全裸的{persona === "female" ? "母狗" : "公狗"}？
       </h1>
 
       <Card className="overflow-hidden py-0">
-        <CardContent className="p-4 sm:p-5">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setMode("normal")}
-              className={cn(
-                "rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors",
-                mode === "normal"
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-card hover:bg-muted/50",
-              )}
-            >
-              普通
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("hell")}
-              data-active={mode === "hell" ? "true" : "false"}
-              aria-pressed={mode === "hell"}
-              className={cn(
-                "hell-select-card rounded-lg border px-3 py-2.5 text-sm font-medium",
-                mode === "hell" ? "" : "border-border bg-card hover:bg-muted/50",
-              )}
-            >
-              <span className="hell-card-scorch" aria-hidden="true" />
-              <span className="hell-card-rim" aria-hidden="true" />
-              <span className="hell-card-sparks" aria-hidden="true">
-                <span style={{ left: "22%" }} />
-                <span style={{ left: "51%" }} />
-                <span style={{ left: "78%" }} />
-              </span>
-              <span className="hell-select-title">地狱</span>
-            </button>
+        <CardContent className="space-y-5 p-4 sm:p-5">
+          <div role="radiogroup" aria-label="身份" className="flex flex-wrap gap-2">
+            <PersonaPill
+              selected={persona === "male"}
+              tone="male"
+              onClick={() => selectPersona("male")}
+            />
+            <PersonaPill
+              selected={persona === "female"}
+              tone="female"
+              onClick={() => selectPersona("female")}
+            />
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <p className="text-sm">
-              {startingFloor}
-              <span className="text-muted-foreground"> → {endFloor} 层</span>
-            </p>
+          <div role="radiogroup" aria-label="模式" className="grid grid-cols-2 gap-2">
+            <ChoiceCard
+              selected={mode === "normal"}
+              title="普通模式"
+              hint="10 步，到顶结算"
+              onClick={() => setMode("normal")}
+            />
+            <ChoiceCard
+              selected={mode === "hell"}
+              variant="heat"
+              title="地狱模式"
+              hint="12 步，电梯厅加罚"
+              onClick={() => setMode("hell")}
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t pt-4">
+            <div>
+              <p className="text-xs font-medium tracking-wide text-muted-foreground">起始层</p>
+              <p className="mt-1 text-sm tabular-nums">
+                {startingFloor}
+                <span className="text-muted-foreground"> → {endFloor} 层</span>
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -130,7 +129,7 @@ export function StartSection() {
             type="button"
             onClick={toggleKneepads}
             className={cn(
-              "mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
+              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
               owned.护膝
                 ? "border-foreground/30 bg-muted/50"
                 : "border-border text-muted-foreground hover:bg-muted/50",
@@ -144,10 +143,10 @@ export function StartSection() {
             size="lg"
             data-hell={mode === "hell" ? "true" : "false"}
             className={cn(
-              "mt-4 h-12 w-full text-base font-semibold",
+              "h-12 w-full text-base font-semibold",
               mode === "hell" && "hell-start-btn",
             )}
-            onClick={() => startGame(startingFloor, mode, owned)}
+            onClick={() => startGame(startingFloor, mode, owned, persona)}
           >
             {mode === "hell" && <span className="hell-btn-heat" aria-hidden="true" />}
             {mode === "hell" && <span className="hell-btn-grain" aria-hidden="true" />}
@@ -156,5 +155,119 @@ export function StartSection() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function PersonaPill({
+  selected,
+  tone,
+  onClick,
+}: {
+  selected: boolean;
+  tone: "male" | "female";
+  onClick: () => void;
+}) {
+  const male = tone === "male";
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onClick}
+      className={cn(
+        "inline-flex h-8 items-center justify-center gap-1 rounded-full border px-2.5 text-xs font-medium whitespace-nowrap transition-colors",
+        male &&
+          (selected
+            ? "border-sky-600 bg-sky-600 text-white shadow-sm"
+            : "border-sky-500/35 bg-sky-500/15 text-sky-800 hover:bg-sky-500/25 dark:text-sky-200"),
+        !male &&
+          (selected
+            ? "border-pink-500 bg-pink-500 text-white shadow-sm"
+            : "border-pink-500/35 bg-pink-500/15 text-pink-800 hover:bg-pink-500/25 dark:text-pink-200"),
+      )}
+    >
+      <span className="text-sm leading-none" aria-hidden="true">
+        {male ? "♂" : "♀"}
+      </span>
+      {male ? "我是公狗" : "我是母狗"}
+    </button>
+  );
+}
+
+function ChoiceCard({
+  selected,
+  variant = "ink",
+  title,
+  hint,
+  onClick,
+}: {
+  selected: boolean;
+  variant?: "ink" | "heat";
+  title: string;
+  hint: string;
+  onClick: () => void;
+}) {
+  const heat = variant === "heat";
+
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      aria-pressed={selected}
+      data-active={heat ? (selected ? "true" : "false") : undefined}
+      onClick={onClick}
+      className={cn(
+        "relative isolate min-h-[4.75rem] overflow-hidden rounded-xl border px-3.5 py-3 text-left transition-colors",
+        heat && "hell-select-card",
+        selected && variant === "ink" && "border-foreground bg-foreground text-background",
+        !selected && "border-border bg-card hover:bg-muted/50",
+      )}
+    >
+      {heat && (
+        <>
+          <span className="hell-card-scorch" aria-hidden="true" />
+          <span className="hell-card-rim" aria-hidden="true" />
+          <span className="hell-card-sparks" aria-hidden="true">
+            <span style={{ left: "22%" }} />
+            <span style={{ left: "51%" }} />
+            <span style={{ left: "78%" }} />
+          </span>
+        </>
+      )}
+      <span className="relative z-[1] flex items-start justify-between gap-2">
+        <span className="min-w-0">
+          <span
+            className={cn(
+              "block text-[15px] font-semibold tracking-tight",
+              heat && "hell-select-title",
+            )}
+          >
+            {title}
+          </span>
+          <span
+            className={cn(
+              "mt-1 block text-xs leading-snug",
+              selected ? "opacity-70" : "text-muted-foreground",
+            )}
+          >
+            {hint}
+          </span>
+        </span>
+        <span
+          className={cn(
+            "mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border transition-colors",
+            selected
+              ? heat
+                ? "border-current bg-current/15"
+                : "border-current bg-current/10"
+              : "border-border",
+          )}
+          aria-hidden="true"
+        >
+          {selected && <Check className="size-2.5" strokeWidth={3} />}
+        </span>
+      </span>
+    </button>
   );
 }

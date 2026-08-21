@@ -24,8 +24,9 @@ The key design decision: **all game logic lives in `src/lib/game/` as framework-
 
 ### `src/lib/game/` — core game logic
 
-- `types.ts` — `GameState`, `Task`, `ClothingItem`, `AppView`, `GameHistoryRecord`, `ShopItem`. `ClothingItem` is a Chinese-literal union type (`"上衣" | "长裤" | "内裤" | "白袜" | "护膝"`).
-- `constants.ts` — all game content and pure functions: task pools (`tasks.A/B/C/上楼任务`), `endings`, `shopItems`, floor maps (`TASK_FLOORS`, `CLIMBING_DECISION_FLOORS`, `NEXT_FLOOR_MAP`, `CLIMBING_TARGET_MAP`), and helpers (`createInitialGameState`, `calculateTaskScore`, `getEnding`, `pickRandomTask`, `getTaskPoolForFloor`, `getDisplayFloor`, `getProgressPercent`).
+- `types.ts` — `GameState`, `Task`, `ClothingItem`, `AppView`, `GameHistoryRecord`, `ShopItem`, `Persona`（`"male" | "female"`，公狗/母狗）。`ClothingItem` is a Chinese-literal union type (`"上衣" | "长裤" | "内裤" | "短袜" | "护膝"`).
+- `constants.ts` — all game content and pure functions: male task pools (`tasks.A/B/C/上楼任务/H`), `getTasks(persona)`, `endings`, floor maps, and helpers (`createInitialGameState`, `calculateTaskScore`, `getEnding`, `pickRandomTask`, `getTaskPoolForFloor`, `getDisplayFloor`, `getProgressPercent`).
+- `tasksFemale.ts` — 母狗模式任务与结局（按女生改写，含掰穴、勒缝、奶子贴墙等）。
 - `storage.ts` — localStorage persistence. `gameState` key holds the current game, `staircaseGameHistory` holds up to 10 history records.
 - `store.ts` — the Zustand store `useGameStore`: `state`, `view`, `history`, plus all game actions (`startGame`, `buyItem`, `startAdventure`, `completeTask`, `nextFloor`, `assignClimbingTask`, `confirmClimbing`, `skipTask`, `useRestoreVoucher`, `forfeitGame`, `endGame`, `restartGame`). Actions call `persist()` (save to localStorage) explicitly after every mutation — there is no zustand persistence middleware. Also exports pure UI helpers `getGameControls` and `getActiveTaskDisplay` used by `GameSection`.
 
@@ -49,7 +50,7 @@ The key design decision: **all game logic lives in `src/lib/game/` as framework-
 
 ## Conventions & notes
 
-- **Content is data, not code**: adding tasks, items, or endings means editing `constants.ts` — `tasks`, `shopItems`, `endings`. Prices/balances are tuned there too (e.g. skip = 6 pts, restore = 8 pts).
+- **Content is data, not code**: adding tasks, items, or endings means editing `constants.ts` / `tasksFemale.ts` — `tasks`, `tasksFemale`, `shopItems`, `endings`. Prices/balances are tuned there too (e.g. skip = 6 pts, restore = 8 pts).
 - `rules.md` at the repo root is the game design spec (Chinese). It describes the intended v2 rules, but the code is the source of truth where they differ (e.g. restore voucher price is 8 in code, 5 in the spec).
 - `legacy/` holds the pre-migration vanilla JS game for reference — not built, do not modify unless porting something from it.
 - All user-facing strings are Chinese; keep new UI text and content in Chinese.

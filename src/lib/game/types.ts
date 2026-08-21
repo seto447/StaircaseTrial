@@ -2,6 +2,9 @@ export type GamePhase = "initial" | "shop" | "adventure" | "ended";
 
 export type GameMode = "normal" | "hell";
 
+/** 公狗 = 男生任务；母狗 = 女生任务 */
+export type Persona = "male" | "female";
+
 export type ClothingItem =
   | "上衣"
   | "长裤"
@@ -63,6 +66,8 @@ export interface GameState {
   mode: GameMode;
   /** 开局选择的模式（商店购入通行证可临时升为 hell，退货时回退） */
   selectedMode: GameMode;
+  /** 公狗 / 母狗，决定任务与结局文案 */
+  persona: Persona;
   clothing: Record<ClothingItem, boolean>;
   currentTask: Task | null;
   taskMessage: string | null;
@@ -99,6 +104,7 @@ export interface GameHistoryRecord {
   remainingClothes: number;
   ending: string;
   mode?: GameMode;
+  persona?: Persona;
   hellTasksCompleted?: number;
   urineMarks?: number;
 }

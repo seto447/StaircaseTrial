@@ -25,7 +25,7 @@ const FLOW_HELL = [
   "9 层地狱任务 ×1",
   "9→10 → 上楼至 11",
   "11 层地狱任务 ×1",
-  "12 结算（地狱结局）",
+  "完成后结算",
 ];
 
 const ENDINGS_NORMAL = [
@@ -37,12 +37,29 @@ const ENDINGS_NORMAL = [
   { range: "0", text: "当场再抽一项C级任务做完，再按1–9分结局执行" },
 ];
 
+const ENDINGS_NORMAL_FEMALE = [
+  { range: "≥40", text: "怎么高潮、在哪高潮都随你，也可以不准自己高潮，完成后回家" },
+  { range: "30–39", text: "高潮到短袜上，含住至少10s，完成后回家" },
+  { range: "20–29", text: "全裸跪下高潮出来，用身体或舌头舔干净，完成后回家" },
+  { range: "10–19", text: "高潮到身上多处，拍下来，舔干净，完成后回家" },
+  { range: "1–9", text: "不准高潮，裸体罚跪至少15分钟，内裤勒进逼缝走回家，短袜塞嘴里" },
+  { range: "0", text: "当场再抽一项C级任务做完，再按1–9分结局执行" },
+];
+
 const ENDINGS_HELL = [
   { range: "≥50", text: "可以马上回家，拿到「地狱幸存者」" },
   { range: "35–49", text: "在电梯厅边缘至少一次，完成后才能射" },
   { range: "20–34", text: "在电梯厅尿出来，再射出来，完成后回家" },
   { range: "10–19", text: "电梯厅全裸罚跪，拍下来，完成后回家" },
   { range: "0–9", text: "电梯厅全裸，尿出来，不准射，戴贞操锁7天，短袜塞嘴里回家" },
+];
+
+const ENDINGS_HELL_FEMALE = [
+  { range: "≥50", text: "可以马上回家，拿到「地狱幸存者」" },
+  { range: "35–49", text: "在电梯厅边缘至少一次，完成后才能高潮" },
+  { range: "20–34", text: "在电梯厅尿出来，再高潮出来，完成后回家" },
+  { range: "10–19", text: "电梯厅全裸罚跪，拍下来，完成后回家" },
+  { range: "0–9", text: "电梯厅全裸，尿出来，不准高潮，内裤塞进逼里走回家，短袜塞嘴里" },
 ];
 
 export function RulesSection() {
@@ -76,7 +93,7 @@ export function RulesSection() {
             <TabsContent value="flow" className="mt-5 space-y-4">
               <SectionTitle>普通流程（10 步）</SectionTitle>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                从起始楼层固定推进，任务池按 A/B/C 难度抽取。
+                开局选公狗或母狗、普通或地狱。母狗模式任务按女生改写（逼、揉、高潮），并含掰穴、勒缝、奶子贴墙等。流程与计分相同。
               </p>
               <ol className="grid gap-2 sm:grid-cols-2">
                 {FLOW_NORMAL.map((s, i) => (
@@ -140,9 +157,11 @@ export function RulesSection() {
               </div>
             </TabsContent>
 
-            <TabsContent value="ending" className="mt-5 space-y-3">
-              <SectionTitle>普通结局</SectionTitle>
+            <TabsContent value="ending" className="mt-5 space-y-4">
+              <SectionTitle>普通结局 · 公狗</SectionTitle>
               <EndingTable rows={ENDINGS_NORMAL} />
+              <SectionTitle>普通结局 · 母狗</SectionTitle>
+              <EndingTable rows={ENDINGS_NORMAL_FEMALE} />
             </TabsContent>
 
             <TabsContent value="hell" className="mt-5 space-y-4">
@@ -160,8 +179,10 @@ export function RulesSection() {
                   </li>
                 ))}
               </ol>
-              <SectionTitle>地狱结局</SectionTitle>
+              <SectionTitle>地狱结局 · 公狗</SectionTitle>
               <EndingTable rows={ENDINGS_HELL} />
+              <SectionTitle>地狱结局 · 母狗</SectionTitle>
+              <EndingTable rows={ENDINGS_HELL_FEMALE} />
             </TabsContent>
           </Tabs>
         </CardContent>

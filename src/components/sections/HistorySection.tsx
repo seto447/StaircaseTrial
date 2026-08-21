@@ -63,6 +63,7 @@ export function HistorySection() {
                       </TableCell>
                       <TableCell className="text-xs">
                         {r.mode === "hell" ? "地狱" : "普通"}
+                        {r.persona === "female" ? " · 母狗" : " · 公狗"}
                       </TableCell>
                       <TableCell className="font-mono text-sm font-semibold tabular-nums">
                         {r.finalScore}
