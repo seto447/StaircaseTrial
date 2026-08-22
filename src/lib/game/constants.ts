@@ -74,13 +74,12 @@ export const KEY_CLOTHING_ITEMS: ClothingItem[] = [
   "短袜",
 ];
 
-/** 可被剥夺衣物的衣物 */
+/** 可被剥夺的衣物（护膝只是跪爬防护，不参与剥夺） */
 export const STRIPPABLE_CLOTHING_ITEMS: ClothingItem[] = [
   "上衣",
   "长裤",
   "内裤",
   "短袜",
-  "护膝",
 ];
 
 export const TASK_FLOORS_NORMAL = [1, 2, 4, 5, 7, 8] as const;
@@ -196,12 +195,12 @@ export const tasks: Record<string, Task[]> = {
     t("B2", "模拟做爱", "光屁股面对墙撸鸡巴，往墙上撞至少3下，模拟做爱", 3),
     t("B3", "勃起露出", "露出勃起带血管的鸡巴头，拍至少3张不同角度", 2),
     t("B4", "夹腿露出", "脱下内裤包住鸡巴，夹腿，保持至少1分钟", 2),
-    t("B5", "全裸露出", "下半身全裸，长裤挂在脖子上，坚持至少2分钟", 2),
-    t("B6", "狗姿摇屁股", "下半身全裸，狗姿摇屁股至少1分钟", 2),
+    t("B5", "全裸露出", "下半身全裸，长裤挂在脖子上，坚持至少2分钟", 3),
+    t("B6", "狗姿摇屁股", "下半身全裸，狗姿摇屁股至少1分钟", 3),
     t("B7", "楼梯扶手摩擦", "鸡巴沿扶手来回滑至少20下，留下水痕", 3),
     t("B8", "转角全裸守候", "转角处下半身全裸，站立或跪姿，坚持至少3分钟", 3),
     t("B9", "双腿大开", "坐在台阶上双腿完全打开，鸡巴朝向可能有人下来的方向，保持至少2分钟", 3),
-    t("B10", "屁股朝上", "狗姿把屁股抬得比头高，保持至少1分半，期间可以轻轻摇", 2),
+    t("B10", "屁股朝上", "狗姿把屁股抬得比头高，保持至少1分半，期间可以轻轻摇", 3),
     t("B11", "台阶排尿", "选一级台阶，鸡巴对准台阶边缘慢慢尿，至少尿湿半级", 3, 2),
     t("B12", "尿后舔净", "尿完用舌头把台阶上的尿舔到肉眼看不见", 4, 2),
     t("B13", "尿湿内裤再穿", "把内裤脱下，用尿浸湿，再穿上，继续做后面的动作", 3, 2),
@@ -226,8 +225,8 @@ export const tasks: Record<string, Task[]> = {
     t("B36", "最终展示", "下半身全裸站在楼梯中间至少10s，完成后才可穿回", 3),
   ],
   C: [
-    t("C1", "狗姿拍摄", "下半身全裸，狗姿掰开屁股，保持至少1分钟并拍照", 2),
-    t("C2", "鸡巴贴地走", "穿短袜，鸡巴贴地蹲着走，屁股大幅扭动至少3米", 2),
+    t("C1", "狗姿拍摄", "下半身全裸，狗姿掰开屁股，保持至少1分钟并拍照", 3),
+    t("C2", "鸡巴贴地走", "穿短袜，鸡巴贴地蹲着走，屁股大幅扭动至少3米", 3),
     t("C3", "超长跪姿暴露", "鸡巴朝楼下，跪下至少10分钟，鸡巴头露着不能挡", 4),
     t("C4", "寸止挑战", "撸到高潮并寸止至少2次", 3),
     t("C5", "舔脚游戏", "舔脚趾和脚掌，舔完且舔干净", 4),
@@ -323,10 +322,10 @@ export const endingsNormal: EndingDef[] = [
 ];
 
 export const endingsHell: EndingDef[] = [
-  { minScore: 50, description: "可以马上回家，拿到「地狱幸存者」" },
-  { minScore: 35, description: "在电梯厅边缘至少一次，完成后才能射" },
-  { minScore: 20, description: "在电梯厅尿出来，再射出来，完成后回家" },
-  { minScore: 10, description: "电梯厅全裸罚跪，拍下来，完成后回家" },
+  { minScore: 60, description: "电梯厅不用再做任何事，马上回家，拿到「地狱幸存者」" },
+  { minScore: 45, description: "电梯厅正中央全裸边缘至少两次，完成后才能射，再回家" },
+  { minScore: 30, description: "电梯厅先完整尿出来，立刻边缘一次，再射出来，完成后回家" },
+  { minScore: 15, description: "电梯厅全裸罚跪至少5分钟，拍下来，完成后回家" },
   { minScore: 0, description: "电梯厅全裸，尿出来，不准射，戴贞操锁7天，短袜塞嘴里回家" },
 ];
 
@@ -392,7 +391,7 @@ export const shopItems: ShopItem[] = [
   {
     id: "护膝",
     name: "护膝",
-    description: "减少膝盖擦伤",
+    description: "减少膝盖擦伤。不参与剥夺衣物。",
     price: 2,
     type: "clothing",
     clothingKey: "护膝",
@@ -422,16 +421,8 @@ export const shopItems: ShopItem[] = [
     id: "riskDouble",
     name: "风险加倍券",
     description: "本局暴露加分 ×1.5，但脱衣更容易发生。限购 1 次。",
-    price: 4,
+    price: 6,
     type: "riskDouble",
-  },
-  {
-    id: "hellPass",
-    name: "电梯厅通行证",
-    description: "进入电梯厅地狱任务。限购 1 次。",
-    price: 12,
-    type: "hellPass",
-    hellOnly: true,
   },
 ];
 
@@ -475,12 +466,10 @@ export function createInitialGameState(
       restore: 0,
       delayStrip: 0,
       riskDouble: 0,
-      hellPass: 0,
     },
     assignedClimbingTask: null,
     eighthFloorFirstTaskCompleted: false,
     hasBoughtRestore: false,
-    hasBoughtHellPass: false,
     hasBoughtRiskDouble: false,
     riskDoubleActive: false,
     pendingDelayedStrip: false,

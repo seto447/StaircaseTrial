@@ -47,19 +47,19 @@ const ENDINGS_NORMAL_FEMALE = [
 ];
 
 const ENDINGS_HELL = [
-  { range: "≥50", text: "可以马上回家，拿到「地狱幸存者」" },
-  { range: "35–49", text: "在电梯厅边缘至少一次，完成后才能射" },
-  { range: "20–34", text: "在电梯厅尿出来，再射出来，完成后回家" },
-  { range: "10–19", text: "电梯厅全裸罚跪，拍下来，完成后回家" },
-  { range: "0–9", text: "电梯厅全裸，尿出来，不准射，戴贞操锁7天，短袜塞嘴里回家" },
+  { range: "≥60", text: "电梯厅不用再做任何事，马上回家，拿到「地狱幸存者」" },
+  { range: "45–59", text: "电梯厅正中央全裸边缘至少两次，完成后才能射，再回家" },
+  { range: "30–44", text: "电梯厅先完整尿出来，立刻边缘一次，再射出来，完成后回家" },
+  { range: "15–29", text: "电梯厅全裸罚跪至少5分钟，拍下来，完成后回家" },
+  { range: "0–14", text: "电梯厅全裸，尿出来，不准射，戴贞操锁7天，短袜塞嘴里回家" },
 ];
 
 const ENDINGS_HELL_FEMALE = [
-  { range: "≥50", text: "可以马上回家，拿到「地狱幸存者」" },
-  { range: "35–49", text: "在电梯厅边缘至少一次，完成后才能高潮" },
-  { range: "20–34", text: "在电梯厅尿出来，再高潮出来，完成后回家" },
-  { range: "10–19", text: "电梯厅全裸罚跪，拍下来，完成后回家" },
-  { range: "0–9", text: "电梯厅全裸，尿出来，不准高潮，内裤塞进逼里走回家，短袜塞嘴里" },
+  { range: "≥60", text: "电梯厅不用再做任何事，马上回家，拿到「地狱幸存者」" },
+  { range: "45–59", text: "电梯厅正中央全裸边缘至少两次，完成后才能高潮，再回家" },
+  { range: "30–44", text: "电梯厅先完整尿出来，立刻边缘一次，再高潮出来，完成后回家" },
+  { range: "15–29", text: "电梯厅全裸罚跪至少5分钟，拍下来，完成后回家" },
+  { range: "0–14", text: "电梯厅全裸，尿出来，不准高潮，内裤塞进逼里走回家，短袜塞嘴里" },
 ];
 
 export function RulesSection() {
@@ -136,7 +136,7 @@ export function RulesSection() {
                 <div className="rounded-lg border p-3 text-sm">
                   <p className="font-medium">道具</p>
                   <p className="mt-1 text-muted-foreground">
-                    跳过 6 · 恢复内裤 8 · 延迟剥夺衣物 5 · 风险加倍 4 · 电梯厅通行证 12
+                    跳过 6 · 恢复内裤 8 · 延迟剥夺衣物 5 · 风险加倍 6
                   </p>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export function RulesSection() {
               <SectionTitle>得分与剥夺衣物</SectionTitle>
               <p className="text-sm text-muted-foreground">
                 基础分 + 暴露 + 尿液加成。普通 50%（骰≤3）触发脱衣；地狱 / 风险加倍约 66%（骰≤4）。可用 5
-                分保留（电梯厅 8 分），或用延迟剥夺衣物券推迟到下一层。无衣可脱时 -5 分并强制尿液标记。
+                分保留（电梯厅 8 分），或用延迟剥夺衣物券推迟到下一层。护膝不参与剥夺。无衣可脱时 -5 分并强制尿液标记。
               </p>
               <Separator />
               <div className="grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
@@ -167,7 +167,7 @@ export function RulesSection() {
             <TabsContent value="hell" className="mt-5 space-y-4">
               <SectionTitle>地狱模式（12 步）</SectionTitle>
               <p className="text-sm text-muted-foreground">
-                开局选择地狱（初始 -3）或在商店购买电梯厅通行证。剥夺衣物概率升高，暴露加成 +1，电梯厅保留衣物 8 分。
+                开局选择地狱（初始 -3）。剥夺衣物概率升高，暴露加成 +1，电梯厅保留衣物 8 分。想改模式请回主页重选。
               </p>
               <ol className="grid gap-2 sm:grid-cols-2">
                 {FLOW_HELL.map((s, i) => (

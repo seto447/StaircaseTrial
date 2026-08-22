@@ -99,7 +99,7 @@ function clampScore(v: unknown, fallback: number): number {
 }
 
 function emptyInventory(): Inventory {
-  return { skip: 0, restore: 0, delayStrip: 0, riskDouble: 0, hellPass: 0 };
+  return { skip: 0, restore: 0, delayStrip: 0, riskDouble: 0 };
 }
 
 function normalizeInventory(raw: unknown): Inventory {
@@ -111,7 +111,6 @@ function normalizeInventory(raw: unknown): Inventory {
     restore: clampScore(data.restore, 0),
     delayStrip: clampScore(data.delayStrip, 0),
     riskDouble: clampScore(data.riskDouble, 0),
-    hellPass: clampScore(data.hellPass, 0),
   };
 }
 
@@ -189,7 +188,6 @@ function normalizeLoadedState(raw: unknown): GameState {
         : base.currentPhase,
     eighthFloorFirstTaskCompleted: !!data.eighthFloorFirstTaskCompleted,
     hasBoughtRestore: !!data.hasBoughtRestore,
-    hasBoughtHellPass: !!data.hasBoughtHellPass || inv.hellPass > 0,
     hasBoughtRiskDouble: !!data.hasBoughtRiskDouble || inv.riskDouble > 0 || !!data.riskDoubleActive,
     riskDoubleActive: !!data.riskDoubleActive,
     pendingDelayedStrip: !!data.pendingDelayedStrip,
@@ -330,8 +328,6 @@ function getInventoryCount(inv: Inventory, type: string): number {
       return inv.delayStrip;
     case "riskDouble":
       return inv.riskDouble;
-    case "hellPass":
-      return inv.hellPass;
     default:
       return 0;
   }
@@ -489,7 +485,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       },
       inventory: emptyInventory(),
       hasBoughtRestore: false,
-      hasBoughtHellPass: false,
       hasBoughtRiskDouble: false,
       riskDoubleActive: false,
       scoreRerollsUsed: state.scoreRerollsUsed + 1,
@@ -503,10 +498,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { state } = get();
     const item = shopItems.find((i) => i.id === itemId);
 
-    if (item?.hellOnly && state.mode !== "hell") {
-      return { disabled: true, label: "仅地狱" };
-    }
-
     if (
       item?.type === "clothing" &&
       item.clothingKey &&
@@ -516,9 +507,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     if (itemId === "restore" && state.hasBoughtRestore) {
-      return { disabled: true, label: "已购买" };
-    }
-    if (itemId === "hellPass" && state.hasBoughtHellPass) {
       return { disabled: true, label: "已购买" };
     }
     if (itemId === "riskDouble" && state.hasBoughtRiskDouble) {
@@ -553,8 +541,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return false;
     }
 
-    if (item.hellOnly && state.mode !== "hell") return false;
-
     if (
       item.type === "clothing" &&
       item.clothingKey &&
@@ -565,7 +551,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     if (state.score < price) return false;
     if (itemId === "restore" && state.hasBoughtRestore) return false;
-    if (itemId === "hellPass" && state.hasBoughtHellPass) return false;
     if (itemId === "riskDouble" && state.hasBoughtRiskDouble) return false;
 
     if (
@@ -600,12 +585,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       };
       next.hasBoughtRiskDouble = true;
       next.riskDoubleActive = true;
-    } else if (item.type === "hellPass") {
-      next.inventory = {
-        ...next.inventory,
-        hellPass: next.inventory.hellPass + 1,
-      };
-      next.hasBoughtHellPass = true;
     }
 
     persist(next);
@@ -656,12 +635,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       };
       next.hasBoughtRiskDouble = false;
       next.riskDoubleActive = false;
-    } else if (item.type === "hellPass") {
-      next.inventory = {
-        ...next.inventory,
-        hellPass: next.inventory.hellPass - 1,
-      };
-      next.hasBoughtHellPass = false;
     }
 
     persist(next);

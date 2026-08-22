@@ -1,29 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
+import { AgeBlocked, AgeGate } from "@/components/AgeGate";
 import { AppHeader } from "@/components/AppHeader";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DebugTerminal } from "@/components/DebugTerminal";
 import { HellBorderEffect } from "@/components/HellBorderEffect";
+import { BriefingSection } from "@/components/sections/BriefingSection";
+import { DisclaimerSection } from "@/components/sections/DisclaimerSection";
 import { EndSection } from "@/components/sections/EndSection";
 import { GameSection } from "@/components/sections/GameSection";
 import { HistorySection } from "@/components/sections/HistorySection";
 import { RulesSection } from "@/components/sections/RulesSection";
-import { BriefingSection } from "@/components/sections/BriefingSection";
 import { ShopSection } from "@/components/sections/ShopSection";
 import { StartSection } from "@/components/sections/StartSection";
 import { useTheme } from "@/components/theme-provider";
 import { useDebugMode } from "@/hooks/useDebugMode";
+import { loadDisclaimerAck } from "@/lib/disclaimer";
 import { useGameStore } from "@/lib/game/store";
 import { cn } from "@/lib/utils";
 
+type AccessState = "gate" | "blocked" | "ok";
+
 function App() {
   const view = useGameStore((s) => s.view);
+  const setView = useGameStore((s) => s.setView);
   const hydrate = useGameStore((s) => s.hydrate);
   const mode = useGameStore((s) => s.state.mode);
   const hellPreview = useGameStore((s) => s.hellPreview);
   const hellActive = mode === "hell" || hellPreview;
   const debug = useDebugMode();
   const { resolvedTheme } = useTheme();
+  const [access, setAccess] = useState<AccessState>(() =>
+    loadDisclaimerAck() ? "ok" : "gate",
+  );
 
   useEffect(() => {
     hydrate();
@@ -31,7 +40,20 @@ function App() {
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
-  }, [view]);
+  }, [view, access]);
+
+  if (access === "blocked") {
+    return <AgeBlocked onBack={() => setAccess("gate")} />;
+  }
+
+  if (access === "gate") {
+    return (
+      <AgeGate
+        onAccepted={() => setAccess("ok")}
+        onDeclined={() => setAccess("blocked")}
+      />
+    );
+  }
 
   return (
     <div
@@ -47,6 +69,7 @@ function App() {
         <main key={view} className="view-enter">
           {view === "start" && <StartSection />}
           {view === "rules" && <RulesSection />}
+          {view === "disclaimer" && <DisclaimerSection />}
           {view === "shop" && <ShopSection />}
           {view === "briefing" && <BriefingSection />}
           {view === "game" && <GameSection />}
@@ -56,9 +79,16 @@ function App() {
 
         <footer className="mt-10 border-t pt-4 text-center">
           <p className="text-xs leading-relaxed text-muted-foreground">
-            虚构模拟，请遵守法律与场地规则，感到不适请停止。
+            18+ 成人内容。虚构模拟，请遵守法律，切勿在公共场所实施。感到不适请立即停止。
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">v3.1</p>
+          <button
+            type="button"
+            onClick={() => setView("disclaimer")}
+            className="mt-2 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            免责声明
+          </button>
+          <p className="mt-2 text-xs text-muted-foreground">v3.2</p>
         </footer>
       </div>
 

@@ -15,6 +15,7 @@ export type ClothingItem =
 export type AppView =
   | "start"
   | "rules"
+  | "disclaimer"
   | "shop"
   | "briefing"
   | "game"
@@ -54,7 +55,6 @@ export interface Inventory {
   restore: number;
   delayStrip: number;
   riskDouble: number;
-  hellPass: number;
 }
 
 export interface GameState {
@@ -64,7 +64,7 @@ export interface GameState {
   startingFloor: number;
   gamePhase: GamePhase;
   mode: GameMode;
-  /** 开局选择的模式（商店购入通行证可临时升为 hell，退货时回退） */
+  /** 开局选择的模式 */
   selectedMode: GameMode;
   /** 公狗 / 母狗，决定任务与结局文案 */
   persona: Persona;
@@ -78,7 +78,6 @@ export interface GameState {
   assignedClimbingTask: ClimbingTask | null;
   eighthFloorFirstTaskCompleted: boolean;
   hasBoughtRestore: boolean;
-  hasBoughtHellPass: boolean;
   hasBoughtRiskDouble: boolean;
   riskDoubleActive: boolean;
   /** 延迟剥夺衣物：下一层完成任务时强制触发一次剥夺衣物判定 */
@@ -114,8 +113,7 @@ export type ShopItemType =
   | "skip"
   | "restore"
   | "delayStrip"
-  | "riskDouble"
-  | "hellPass";
+  | "riskDouble";
 
 export interface ShopItem {
   id: string;
@@ -125,8 +123,6 @@ export interface ShopItem {
   required?: boolean;
   type: ShopItemType;
   clothingKey?: ClothingItem;
-  /** 仅地狱模式可见 */
-  hellOnly?: boolean;
 }
 
 export interface ConfirmOptions {

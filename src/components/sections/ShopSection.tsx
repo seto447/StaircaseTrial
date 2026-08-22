@@ -17,8 +17,6 @@ function inventoryCount(inv: Inventory, item: ShopItem): number {
       return inv.delayStrip;
     case "riskDouble":
       return inv.riskDouble;
-    case "hellPass":
-      return inv.hellPass;
     default:
       return 0;
   }
@@ -54,11 +52,7 @@ export function ShopSection() {
 
   const canStart = clothing["长裤"];
   const clothingItems = shopItems.filter((i) => i.type === "clothing");
-  const visibleConsumables = shopItems.filter((i) => {
-    if (i.type === "clothing") return false;
-    if (i.hellOnly && mode !== "hell") return false;
-    return true;
-  });
+  const visibleConsumables = shopItems.filter((i) => i.type !== "clothing");
 
   return (
     <div className="space-y-5">
