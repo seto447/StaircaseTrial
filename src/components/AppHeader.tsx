@@ -1,4 +1,4 @@
-import { BookOpenText, History, Moon, Sun } from "lucide-react";
+import { BookOpenText, History, Moon, ScrollText, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -60,6 +60,14 @@ export function AppHeader({ debugActive, onTitleClick }: AppHeaderProps) {
             >
               规则
             </Button>
+            <Button
+              variant={view === "disclaimer" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8"
+              onClick={() => setView("disclaimer")}
+            >
+              声明
+            </Button>
             {canViewHistory && (
               <Button
                 variant={view === "history" ? "secondary" : "ghost"}
@@ -83,6 +91,9 @@ export function AppHeader({ debugActive, onTitleClick }: AppHeaderProps) {
               <DropdownMenuContent align="end" className="w-40">
                 <DropdownMenuItem onClick={() => setView("rules")}>
                   <BookOpenText className="size-4" /> 规则
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView("disclaimer")}>
+                  <ScrollText className="size-4" /> 免责声明
                 </DropdownMenuItem>
                 {canViewHistory && (
                   <DropdownMenuItem onClick={() => setView("history")}>
